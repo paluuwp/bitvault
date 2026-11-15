@@ -119,7 +119,7 @@ export function PlayerBar() {
   return (
     <footer
       aria-label="Плеер"
-      className="shrink-0 border-t border-control-border bg-surface-raised px-3 py-2 shadow-bevel sm:h-player sm:px-4 sm:py-0"
+      className="shrink-0 border-t border-control-border bg-surface-raised px-3 py-2 shadow-bevel sm:min-h-player sm:px-4 sm:py-2"
     >
       <div className="flex h-full flex-col justify-center gap-1.5 sm:flex-row sm:items-center sm:gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:w-sidebar md:flex-none">

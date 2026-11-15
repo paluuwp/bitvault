@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { UpdateBanner } from '@/components/pwa/UpdateBanner'
 import type { LibraryView, SortDirection, SortField, StorageInfo } from '@/types/models'
 import type { AppSection } from './navigation'
 import { PlayerBar } from './PlayerBar'
@@ -26,6 +27,8 @@ export interface AppShellProps {
   view: LibraryView
   onViewChange: (value: LibraryView) => void
   onAddTrack: () => void
+  /** Идёт загрузка/импорт/экспорт — перезагрузка для обновления PWA запрещена. */
+  updatesBlocked?: boolean
 }
 
 export function AppShell({
@@ -48,6 +51,7 @@ export function AppShell({
   view,
   onViewChange,
   onAddTrack,
+  updatesBlocked = false,
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -166,6 +170,7 @@ export function AppShell({
             onAddTrack={onAddTrack}
             onOpenSidebar={() => setSidebarOpen(true)}
           />
+          <UpdateBanner blocked={updatesBlocked} />
           <main
             id="main-content"
             tabIndex={-1}

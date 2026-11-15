@@ -329,6 +329,7 @@ function AppContent({ library }: { library: UseTracksResult }) {
         view={filters.view}
         onViewChange={filters.setView}
         onAddTrack={handleAddTrack}
+        updatesBlocked={upload.isUploading || transfer.importing || transfer.exporting || deleting}
       >
         <DropZone onFiles={handleIncomingFiles}>
           <LibraryPage

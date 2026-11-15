@@ -24,12 +24,13 @@ export function TrackList({
   return (
     <ul
       aria-label={label}
-      className="divide-y divide-border rounded-card border border-border bg-surface/40"
+      className="overflow-hidden rounded-card border border-border bg-surface/40"
     >
-      {tracks.map((track) => (
+      {tracks.map((track, index) => (
         <TrackRow
           key={track.id}
           track={track}
+          index={index + 1}
           selected={track.id === selectedId}
           onPlay={onPlay}
           onOpen={onOpen}

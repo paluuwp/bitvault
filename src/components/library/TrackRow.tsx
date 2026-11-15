@@ -11,6 +11,8 @@ import type { TrackMenuAction } from './trackMenu'
 
 export interface TrackRowProps {
   track: Track
+  /** Порядковый номер в текущей выборке; показывается в левой колонке. */
+  index?: number
   selected?: boolean
   disabled?: boolean
   loading?: boolean
@@ -23,6 +25,7 @@ export interface TrackRowProps {
 
 export function TrackRow({
   track,
+  index,
   selected = false,
   disabled = false,
   loading = false,
@@ -59,13 +62,26 @@ export function TrackRow({
       aria-busy={loading || undefined}
       onClick={handleRowClick}
       className={clsx(
-        'group flex min-h-16 items-center gap-3 px-3 py-2.5 transition-colors first:rounded-t-card last:rounded-b-card',
-        selected ? 'bg-surface' : 'hover:bg-surface-hover focus-within:bg-surface-hover',
+        'group relative flex min-h-16 items-center gap-3 border-b border-border px-3 py-2.5 transition-colors last:border-b-0',
+        selected ? 'bg-surface-active' : 'hover:bg-surface-raised focus-within:bg-surface-raised',
         disabled && 'opacity-60',
         onOpen && 'cursor-pointer',
         className,
       )}
     >
+      {selected && (
+        <span aria-hidden="true" className="absolute inset-y-0 left-0 w-0.5 bg-accent" />
+      )}
+
+      {index !== undefined && (
+        <span
+          aria-hidden="true"
+          className="w-6 shrink-0 text-right font-mono text-mono-badge text-text-subtle"
+        >
+          {String(index).padStart(2, '0')}
+        </span>
+      )}
+
       <button
         type="button"
         disabled={!interactive}
@@ -127,7 +143,7 @@ export function TrackRow({
         </p>
       </div>
 
-      <Badge mono variant="neutral" className="hidden shrink-0 sm:inline-flex">
+      <Badge mono variant="neutral" className="max-sm:hidden shrink-0">
         {track.bpm === null ? 'BPM —' : `${track.bpm} BPM`}
       </Badge>
 
@@ -136,7 +152,7 @@ export function TrackRow({
           {formatDuration(track.durationSec)}
         </span>
       ) : (
-        <Badge variant="neutral" className="hidden shrink-0 sm:inline-flex">
+        <Badge variant="neutral" className="max-sm:hidden shrink-0">
           Файл проекта
         </Badge>
       )}

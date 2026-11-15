@@ -1,6 +1,10 @@
 import { clsx } from 'clsx'
-import { Tag } from '@/components/ui'
 import type { TagStat } from '@/hooks/useLibraryFilters'
+
+const chipClasses =
+  'inline-flex max-w-full items-center truncate rounded-chip border px-2 py-0.5 text-caption whitespace-nowrap'
+const chipActiveClasses = 'border-accent bg-accent/10 text-accent'
+const chipIdleClasses = 'border-border bg-bg-subtle text-text-muted'
 
 export interface TagFilterListProps {
   tags: TagStat[]
@@ -24,9 +28,16 @@ export function TagFilterList({ tags, activeTag, onTagSelect, className }: TagFi
         type="button"
         aria-pressed={activeTag === null}
         onClick={() => onTagSelect(null)}
-        className="inline-flex min-h-10 max-w-full items-center rounded-full transition-opacity hover:opacity-80"
+        className="inline-flex min-h-10 max-w-full items-center transition-opacity hover:opacity-80"
       >
-        <Tag active={activeTag === null}>Все теги</Tag>
+        <span
+          className={clsx(
+            chipClasses,
+            activeTag === null ? chipActiveClasses : chipIdleClasses,
+          )}
+        >
+          Все теги
+        </span>
       </button>
 
       {tags.map((tag) => {
@@ -39,12 +50,18 @@ export function TagFilterList({ tags, activeTag, onTagSelect, className }: TagFi
             type="button"
             aria-pressed={active}
             onClick={() => onTagSelect(active ? null : tag.name)}
-            className="inline-flex min-h-10 max-w-full items-center rounded-full transition-opacity hover:opacity-80"
+            className="inline-flex min-h-10 max-w-full items-center transition-opacity hover:opacity-80"
           >
-            <Tag active={active} className="gap-1.5">
+            <span
+              className={clsx(
+                chipClasses,
+                'gap-1.5',
+                active ? chipActiveClasses : chipIdleClasses,
+              )}
+            >
               <span className="truncate">#{tag.name}</span>
               <span className="font-mono text-mono-badge opacity-70">{tag.count}</span>
-            </Tag>
+            </span>
           </button>
         )
       })}

@@ -21,10 +21,11 @@ export function TrackGrid({
 }: TrackGridProps) {
   return (
     <div className="track-grid">
-      {tracks.map((track) => (
+      {tracks.map((track, index) => (
         <TrackCard
           key={track.id}
           track={track}
+          index={index + 1}
           selected={track.id === selectedId}
           onPlay={onPlay}
           onOpen={onOpen}

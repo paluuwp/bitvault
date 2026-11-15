@@ -88,6 +88,7 @@ export function TrackMetaForm({
           inputMode="numeric"
           maxLength={3}
           placeholder="Например, 140"
+          className="font-mono"
           disabled={disabled}
           error={errors.bpm}
           hint={`От ${LIMITS.bpmMin} до ${LIMITS.bpmMax} или пусто`}
@@ -161,7 +162,7 @@ export function TrackMetaForm({
             {form.tags.map((tag) => (
               <li
                 key={tag}
-                className="inline-flex min-h-10 max-w-full items-center gap-1 rounded-full border border-border bg-bg-subtle py-0.5 pr-0.5 pl-2.5 text-caption text-text-muted sm:min-h-0 sm:pr-1"
+                className="inline-flex min-h-10 max-w-full items-center gap-1 rounded-chip border border-border bg-bg-subtle py-0.5 pr-0.5 pl-2.5 text-caption text-text-muted sm:min-h-0 sm:pr-1"
               >
                 <span className="min-w-0 truncate">#{tag}</span>
                 <button
@@ -169,7 +170,7 @@ export function TrackMetaForm({
                   disabled={disabled}
                   aria-label={`Удалить тег «${tag}»`}
                   onClick={() => removeTag(tag)}
-                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-surface-hover hover:text-text disabled:pointer-events-none disabled:opacity-40 sm:h-5 sm:w-5"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-chip transition-colors hover:bg-surface-hover hover:text-text disabled:pointer-events-none disabled:opacity-40 sm:h-5 sm:w-5"
                 >
                   <X className="h-3 w-3" aria-hidden="true" />
                 </button>
@@ -208,11 +209,17 @@ export function TrackMetaForm({
                   onChange({ ...form, color })
                 }}
                 className={clsx(
-                  'inline-flex h-10 w-10 items-center justify-center rounded-full border-2 transition-transform disabled:pointer-events-none disabled:opacity-40 sm:h-8 sm:w-8',
-                  active ? 'border-text' : 'border-transparent hover:scale-105',
+                  'relative inline-flex h-10 w-10 items-center justify-center rounded-chip border-2 transition-colors disabled:pointer-events-none disabled:opacity-40 sm:h-8 sm:w-8',
+                  active ? 'border-accent' : 'border-transparent hover:border-border-strong',
                 )}
                 style={{ backgroundColor: color }}
               >
+                {active && (
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0.5 rounded-chip border border-accent"
+                  />
+                )}
                 {active && <Check className="h-4 w-4 text-accent-ink" aria-hidden="true" />}
               </button>
             )

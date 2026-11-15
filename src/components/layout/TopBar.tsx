@@ -28,7 +28,7 @@ export function TopBar({
   onOpenSidebar,
 }: TopBarProps) {
   return (
-    <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-bg px-3 py-2 sm:px-4 md:h-topbar md:flex-nowrap md:gap-3 md:py-0 lg:px-content">
+    <header className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-surface-raised px-3 py-2 shadow-bevel sm:px-4 md:h-topbar md:flex-nowrap md:gap-3 md:py-0 lg:px-content">
       <div className="flex w-full min-w-0 items-center gap-2 md:w-auto md:flex-1 md:max-w-[420px]">
         <IconButton
           label="Открыть меню"
@@ -47,11 +47,18 @@ export function TopBar({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             leadingIcon={<Search aria-hidden="true" />}
+            containerClassName="[&_input]:border-control-border [&_input]:shadow-sunken [&_input:hover:not(:focus)]:border-control-border-hover"
           />
         </div>
       </div>
 
       <div className="flex w-full min-w-0 items-center gap-2 md:ml-auto md:w-auto md:shrink-0">
+        <div aria-hidden="true" className="hidden shrink-0 items-center gap-1 md:flex">
+          <span className="fl-led text-led-green" />
+          <span className="fl-led text-led-amber" />
+          <span className="fl-led text-led-red" />
+        </div>
+
         <Select
           aria-label="Сортировка"
           value={sort}
@@ -77,7 +84,7 @@ export function TopBar({
           }
           variant="secondary"
           onClick={onToggleSortDirection}
-          className="hidden lg:inline-flex"
+          className="max-lg:hidden"
         >
           {sortDirection === 'asc' ? (
             <ArrowUpNarrowWide className="h-4 w-4" aria-hidden="true" />
@@ -89,7 +96,7 @@ export function TopBar({
         <div
           role="group"
           aria-label="Вид отображения"
-          className="flex shrink-0 items-center gap-1 rounded-control border border-border bg-bg-subtle p-1"
+          className="flex shrink-0 items-center gap-0.5 rounded-control border border-control-border bg-bg-subtle p-0.5 [&_button[aria-pressed=true]]:bg-surface-raised [&_button[aria-pressed=true]]:text-accent"
         >
           <IconButton
             label="Сетка"
@@ -110,6 +117,7 @@ export function TopBar({
         </div>
 
         <Button
+          variant="primary"
           onClick={onAddTrack}
           aria-label="Добавить биты"
           className="ml-auto shrink-0 md:ml-0"

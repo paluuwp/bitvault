@@ -76,7 +76,7 @@ export function CoverPicker({
   return (
     <section aria-label="Обложка" className="flex items-start gap-4">
       <div
-        className="relative flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-control border border-border"
+        className="relative flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-chip border border-control-border shadow-bevel"
         style={{ backgroundImage: getCoverGradient(color) }}
       >
         {cover.url ? (

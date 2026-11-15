@@ -1,28 +1,50 @@
 /*
- * BitVault — дизайн-токены и базовые стили.
+ * BitVault — дизайн-токены и базовые стили в духе FL Studio.
  * Все цвета, размеры и типографика задаются здесь и используются через
  * сгенерированные Tailwind-утилиты (bg-surface, text-text-muted, rounded-card и т. д.).
+ * Имена токенов стабильны: компоненты не содержат «случайных» hex-цветов.
  */
 
 @theme {
-  /* Палитра интерфейса */
-  --color-bg: #0a0a0d;
-  --color-bg-subtle: #0f0f14;
-  --color-surface: #15151b;
-  --color-surface-hover: #1c1c24;
-  --color-border: #262630;
-  --color-border-strong: #353542;
-  --color-text: #f3f3f6;
-  --color-text-muted: #9b9ba8;
-  --color-text-subtle: #6c6c7a;
-  --color-accent: #d8ff3e;
-  --color-accent-ink: #0a0a0d;
-  --color-danger: #ff5c6c;
-  --color-warning: #ffb547;
-  --color-info: #6ea8ff;
-  --color-favorite: #ff4d8d;
+  /* Поверхности */
+  --color-bg: #0a0a0d; /* совпадает с PWA theme_color — не менять */
+  --color-bg-subtle: #111113;
+  --color-surface: #1b1b1b;
+  --color-surface-raised: #222225;
+  --color-surface-hover: #29292d;
+  --color-surface-active: #313136;
+  --color-border: #2c2c30;
+  --color-border-strong: #47474d;
+  --color-control-border: #6e6e75;
+  --color-control-border-hover: #8a8a92;
 
-  /* Цвета обложек */
+  /* Текст */
+  --color-text: #ededef;
+  --color-text-muted: #a4a4aa;
+  --color-text-subtle: #8a8a91;
+
+  /* Акценты FL */
+  --color-accent: #f7931e;
+  --color-accent-hover: #ffa733;
+  --color-accent-pressed: #de7f12;
+  --color-accent-ink: #14100a;
+  --color-accent-dim: #3a2a12;
+  --color-play: #5bd75b;
+  --color-play-ink: #0a140a;
+  --color-danger: #ff5a5a;
+  --color-danger-ink: #170505;
+  --color-warning: #ffb547;
+  --color-info: #4fd1e0;
+  --color-favorite: #ff5c8a;
+  --color-focus: #ffd28a;
+
+  /* LED-индикаторы */
+  --color-led-green: #6be36b;
+  --color-led-amber: #ffb547;
+  --color-led-red: #ff5a5a;
+  --color-led-cyan: #4fd1e0;
+
+  /* Цвета обложек — это данные, значения не меняем */
   --color-cover-lime: #d8ff3e;
   --color-cover-violet: #8b5cf6;
   --color-cover-cyan: #38bdf8;
@@ -35,18 +57,17 @@
   --font-mono: ui-monospace, 'Cascadia Mono', 'Cascadia Code', Menlo, Consolas, monospace;
 
   /* Типографика */
-  --text-display: 1.75rem;
-  --text-display--line-height: 2rem;
+  --text-display: 1.5rem;
+  --text-display--line-height: 1.75rem;
   --text-display--font-weight: 600;
-  --text-display--letter-spacing: -0.02em;
+  --text-display--letter-spacing: -0.01em;
 
-  --text-h1: 1.375rem;
-  --text-h1--line-height: 1.75rem;
+  --text-h1: 1.125rem;
+  --text-h1--line-height: 1.5rem;
   --text-h1--font-weight: 600;
-  --text-h1--letter-spacing: -0.01em;
 
-  --text-h2: 1rem;
-  --text-h2--line-height: 1.5rem;
+  --text-h2: 0.9375rem;
+  --text-h2--line-height: 1.25rem;
   --text-h2--font-weight: 600;
 
   --text-body: 0.875rem;
@@ -62,21 +83,40 @@
   --text-mono-badge--font-weight: 600;
   --text-mono-badge--letter-spacing: 0.08em;
 
-  /* Радиусы */
-  --radius-card: 1rem;
-  --radius-control: 0.625rem;
-  --radius-modal: 1.25rem;
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1rem;
+  --text-label--font-weight: 600;
+  --text-label--letter-spacing: 0.08em;
+
+  /* Радиусы: почти прямые углы */
+  --radius-card: 4px;
+  --radius-control: 3px;
+  --radius-modal: 4px;
+  --radius-chip: 2px;
+  --radius-led: 1px;
+
+  /* Тени: bevel и жёсткие поповеры вместо мягких ореолов */
+  --shadow-bevel: inset 0 1px 0 0 rgb(255 255 255 / 0.05), inset 0 -1px 0 0 rgb(0 0 0 / 0.55);
+  --shadow-bevel-raised: inset 0 1px 0 0 rgb(255 255 255 / 0.07), 0 1px 0 0 rgb(0 0 0 / 0.6);
+  --shadow-sunken: inset 0 1px 2px 0 rgb(0 0 0 / 0.65);
+  --shadow-popover: 0 12px 28px -8px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(0 0 0 / 0.55);
+  --shadow-led: 0 0 6px 0 currentColor;
+
+  /* Motion: только цвет, границы и прозрачность */
+  --default-transition-duration: 120ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 
   /* Каркас */
-  --spacing-sidebar: 15.5rem;
-  --spacing-topbar: 4rem;
-  --spacing-player: 4.75rem;
-  --spacing-content: 1.5rem;
+  --spacing-sidebar: 14.5rem;
+  --spacing-topbar: 3.25rem;
+  --spacing-player: 4.5rem;
+  --spacing-content: 1.25rem;
 }
 
 @layer base {
   :root {
     color-scheme: dark;
+    accent-color: var(--color-accent);
   }
 
   html {
@@ -120,7 +160,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
   }
 
@@ -139,7 +179,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    border-radius: 999px;
+    border-radius: 2px;
     background-color: var(--color-border-strong);
   }
 
@@ -160,15 +200,66 @@
 }
 
 @layer components {
+  /* Панели в духе FL Studio */
+  .fl-panel {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-bevel);
+  }
+
+  .fl-panel-raised {
+    background-color: var(--color-surface-raised);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-bevel-raised);
+  }
+
+  .fl-inset {
+    background-color: var(--color-bg-subtle);
+    box-shadow: var(--shadow-sunken);
+  }
+
+  .fl-titlebar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    background-color: var(--color-surface-raised);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-bevel);
+    font-size: var(--text-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+
+  .fl-led {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-led);
+    background-color: currentColor;
+    box-shadow: var(--shadow-led);
+  }
+
+  .fl-meter-fill {
+    background-color: var(--color-accent);
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgb(0 0 0 / 0.28) 0 1px,
+      transparent 1px 7px
+    );
+  }
+
   .track-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
   }
 
   @media (min-width: 640px) {
     .track-grid {
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
   }
 }
@@ -181,5 +272,15 @@
 @media (hover: none) {
   .track-card-play {
     opacity: 1;
+  }
+}
+
+/*
+ * На тач-устройствах (планшеты в ландшафте и т. п.) слайдер плеера должен
+ * оставаться удобной целью нажатия: на широких экранах он ниже 40px.
+ */
+@media (pointer: coarse) {
+  .player-slider {
+    height: 2.5rem;
   }
 }

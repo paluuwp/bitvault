@@ -17,6 +17,8 @@ import type { TrackMenuAction } from './trackMenu'
 
 export interface TrackCardProps {
   track: Track
+  /** Порядковый номер в текущей выборке; показывается слева сверху. */
+  index?: number
   selected?: boolean
   disabled?: boolean
   loading?: boolean
@@ -29,6 +31,7 @@ export interface TrackCardProps {
 
 export function TrackCard({
   track,
+  index,
   selected = false,
   disabled = false,
   loading = false,
@@ -69,16 +72,25 @@ export function TrackCard({
       aria-busy={loading || undefined}
       onClick={handleCardClick}
       className={clsx(
-        'group relative flex h-full flex-col gap-3 rounded-card border bg-surface p-2.5 transition-[transform,border-color] duration-200 hover:z-10 focus-within:z-10',
+        'group relative flex h-full flex-col gap-3 rounded-card border bg-surface p-2.5 shadow-bevel transition-colors hover:z-10 focus-within:z-10',
         selected ? 'border-accent focus-within:border-accent' : 'border-border',
-        interactive && !selected && 'hover:-translate-y-0.5 hover:border-border-strong focus-within:border-border-strong',
+        interactive && !selected && 'hover:border-accent/60 hover:bg-surface-raised focus-within:border-accent/60 focus-within:bg-surface-raised',
         disabled && 'opacity-60',
         onOpen && 'cursor-pointer',
         className,
       )}
     >
+      {index !== undefined && (
+        <span
+          aria-hidden="true"
+          className="font-mono text-mono-badge text-text-subtle"
+        >
+          {String(index).padStart(2, '0')}
+        </span>
+      )}
+
       <div className="relative">
-        <div className="relative aspect-square w-full overflow-hidden rounded-control">
+        <div className="relative aspect-square w-full overflow-hidden rounded-chip border border-border">
           <div
             aria-hidden="true"
             className="absolute inset-0"
@@ -108,7 +120,7 @@ export function TrackCard({
                 hasAudio ? `Воспроизвести «${track.name}»` : `Открыть «${track.name}»`
               }
               className={clsx(
-                'track-card-play pointer-events-auto inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-ink transition-opacity duration-150 disabled:opacity-40 motion-reduce:transition-none',
+                'track-card-play pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-control border border-control-border bg-bg/80 text-play transition-[opacity,background-color,color] hover:bg-play hover:text-play-ink focus-visible:bg-play focus-visible:text-play-ink disabled:opacity-40 motion-reduce:transition-none',
                 loading
                   ? 'opacity-100'
                   : 'md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100',
@@ -154,7 +166,7 @@ export function TrackCard({
             items={menuItems}
             placement="top"
             disabled={!interactive}
-            triggerClassName="bg-bg/60 text-text backdrop-blur-sm hover:bg-bg/80"
+            triggerClassName="bg-bg/70 text-text hover:bg-bg/80"
           />
         </div>
       </div>

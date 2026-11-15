@@ -124,23 +124,23 @@ export function PlayerSlider({
       onPointerUp={finishDrag}
       onPointerCancel={finishDrag}
       className={clsx(
-        'group relative flex h-10 w-full touch-none items-center rounded-full outline-offset-4 sm:h-7',
+        'player-slider group relative flex h-10 touch-none items-center rounded-chip outline-offset-4 sm:h-7',
         disabled ? 'cursor-default opacity-50' : 'cursor-pointer',
         className,
       )}
     >
       <div
         ref={trackRef}
-        className="relative h-1.5 w-full rounded-full bg-surface-hover"
+        className="relative h-1 w-full rounded-chip bg-bg-subtle shadow-sunken"
       >
         <div
-          className="absolute inset-y-0 left-0 rounded-full bg-accent"
+          className="absolute inset-y-0 left-0 rounded-chip bg-accent"
           style={{ width: `${percent}%` }}
         />
         <span
           aria-hidden="true"
           className={clsx(
-            'absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent transition-opacity motion-reduce:transition-none',
+            'absolute top-1/2 h-4 w-2 -translate-x-1/2 -translate-y-1/2 rounded-led border border-accent-ink/40 bg-accent transition-opacity motion-reduce:transition-none',
             dragging
               ? 'opacity-100'
               : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',

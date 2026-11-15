@@ -79,7 +79,7 @@ export function PlayerBar() {
   const renderPlayButton = (className?: string) => (
     <IconButton
       label={isPlaying ? 'Пауза' : 'Воспроизвести'}
-      variant="secondary"
+      variant="play"
       disabled={!hasTrack || loading}
       onClick={togglePlay}
       className={className}
@@ -94,14 +94,36 @@ export function PlayerBar() {
     </IconButton>
   )
 
+  const renderTransportButtons = () => (
+    <>
+      <IconButton
+        label="Предыдущий трек"
+        variant="transport"
+        disabled={!hasTrack}
+        onClick={prev}
+      >
+        <SkipBack className="h-5 w-5" aria-hidden="true" />
+      </IconButton>
+      {renderPlayButton()}
+      <IconButton
+        label="Следующий трек"
+        variant="transport"
+        disabled={!canGoNext}
+        onClick={next}
+      >
+        <SkipForward className="h-5 w-5" aria-hidden="true" />
+      </IconButton>
+    </>
+  )
+
   return (
     <footer
       aria-label="Плеер"
-      className="shrink-0 border-t border-border bg-bg-subtle px-3 py-2 sm:h-player sm:px-4 sm:py-0"
+      className="shrink-0 border-t border-control-border bg-surface-raised px-3 py-2 shadow-bevel sm:h-player sm:px-4 sm:py-0"
     >
       <div className="flex h-full flex-col justify-center gap-1.5 sm:flex-row sm:items-center sm:gap-3">
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:w-sidebar md:flex-none">
-          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-control border border-border bg-surface text-text-muted sm:h-12 sm:w-12">
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-chip border border-border bg-surface text-text-muted">
             {currentTrack ? (
               <>
                 <span
@@ -137,7 +159,7 @@ export function PlayerBar() {
                 {error}
               </p>
             ) : (
-              <p className="hidden truncate text-caption text-text-muted sm:block">
+              <p className="hidden truncate font-mono text-caption text-text-muted sm:block">
                 {currentTrack
                   ? loading
                     ? 'Загрузка…'
@@ -148,25 +170,13 @@ export function PlayerBar() {
           </div>
 
           <div className="ml-auto flex items-center gap-1 sm:hidden">
-            <IconButton label="Предыдущий трек" disabled={!hasTrack} onClick={prev}>
-              <SkipBack className="h-5 w-5" aria-hidden="true" />
-            </IconButton>
-            {renderPlayButton()}
-            <IconButton label="Следующий трек" disabled={!canGoNext} onClick={next}>
-              <SkipForward className="h-5 w-5" aria-hidden="true" />
-            </IconButton>
+            {renderTransportButtons()}
           </div>
         </div>
 
         <div className="flex w-full flex-col items-center gap-1 sm:flex-1">
           <div className="hidden items-center gap-1 sm:flex">
-            <IconButton label="Предыдущий трек" disabled={!hasTrack} onClick={prev}>
-              <SkipBack className="h-5 w-5" aria-hidden="true" />
-            </IconButton>
-            {renderPlayButton()}
-            <IconButton label="Следующий трек" disabled={!canGoNext} onClick={next}>
-              <SkipForward className="h-5 w-5" aria-hidden="true" />
-            </IconButton>
+            {renderTransportButtons()}
           </div>
 
           <div className="flex w-full max-w-xl items-center gap-2">

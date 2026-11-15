@@ -31,14 +31,11 @@ export function ProgressBar({
         aria-valuemax={safeMax}
         aria-valuenow={clamped}
         className={clsx(
-          'w-full overflow-hidden rounded-full bg-surface-hover',
+          'w-full overflow-hidden rounded-chip bg-bg-subtle shadow-sunken',
           size === 'sm' ? 'h-1.5' : 'h-2',
         )}
       >
-        <div
-          className="h-full rounded-full bg-accent transition-[width] duration-200"
-          style={{ width: `${percent}%` }}
-        />
+        <div className="fl-meter-fill h-full" style={{ width: `${percent}%` }} />
       </div>
       {showValue && (
         <span className="shrink-0 font-mono text-mono-badge text-text-muted">

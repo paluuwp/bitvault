@@ -39,10 +39,10 @@ export function Select({
           aria-invalid={error ? true : undefined}
           aria-describedby={descriptionId}
           className={clsx(
-            'h-11 w-full appearance-none rounded-control border bg-bg-subtle pr-9 pl-3 text-body text-text transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+            'h-11 w-full appearance-none rounded-control border bg-bg-subtle pr-9 pl-3 text-body text-text shadow-sunken transition-colors disabled:cursor-not-allowed disabled:opacity-50',
             error
               ? 'border-danger'
-              : 'border-border hover:border-border-strong focus:border-accent',
+              : 'border-control-border hover:border-control-border-hover focus:border-accent',
             className,
           )}
         >

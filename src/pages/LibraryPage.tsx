@@ -34,10 +34,15 @@ function LibrarySkeleton() {
   return (
     <div className="track-grid" aria-hidden="true">
       {Array.from({ length: 8 }).map((_, index) => (
-        <div key={index} className="rounded-card border border-border bg-surface p-2.5">
-          <div className="aspect-square w-full animate-pulse rounded-control bg-surface-hover" />
-          <div className="mt-3 h-4 w-3/4 animate-pulse rounded bg-surface-hover" />
-          <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-surface-hover" />
+        <div
+          key={index}
+          className="flex h-full flex-col gap-3 rounded-card border border-border bg-surface p-2.5 shadow-bevel"
+        >
+          <div className="aspect-square w-full animate-pulse rounded-chip border border-border bg-surface-hover" />
+          <div className="flex flex-col gap-2 px-0.5 pb-1">
+            <div className="h-4 w-3/4 animate-pulse rounded-control bg-surface-hover" />
+            <div className="h-3 w-1/2 animate-pulse rounded-control bg-surface-hover" />
+          </div>
         </div>
       ))}
     </div>
@@ -79,7 +84,9 @@ export function LibraryPage({
         <h1 id="library-title" className="text-display text-text">
           {title}
         </h1>
-        <span className="text-caption text-text-muted">{formatTrackCount(tracks.length)}</span>
+        <span className="font-mono text-mono-badge uppercase text-text-subtle">
+          {formatTrackCount(tracks.length)}
+        </span>
         {loading && total > 0 && (
           <span className="inline-flex items-center gap-1.5 text-caption text-text-muted">
             <Spinner size="sm" label="Обновление библиотеки" />

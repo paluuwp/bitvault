@@ -61,8 +61,10 @@ export function Sidebar({
     <div className={clsx('flex h-full min-h-0 flex-col bg-bg-subtle', className)}>
       <div className="flex h-topbar shrink-0 items-center justify-between gap-2 border-b border-border px-4">
         <div className="flex items-center gap-2">
-          <span className="text-h2 font-semibold tracking-[0.16em] text-text">BITVAULT</span>
-          <span aria-hidden="true" className="mt-1 h-1.5 w-1.5 rounded-full bg-accent" />
+          <span className="font-mono text-h2 font-semibold tracking-[0.16em] uppercase text-text">
+            BITVAULT
+          </span>
+          <span aria-hidden="true" className="fl-led text-accent" />
         </div>
         {onClose && (
           <IconButton label="Закрыть меню" variant="ghost" onClick={onClose}>
@@ -85,14 +87,14 @@ export function Sidebar({
                 className={clsx(
                   'relative flex min-h-11 w-full items-center gap-3 rounded-control px-3 py-2.5 text-body transition-colors',
                   isActive
-                    ? 'bg-surface text-text'
+                    ? 'bg-surface-raised text-text'
                     : 'text-text-muted hover:bg-surface-hover hover:text-text',
                 )}
               >
                 {isActive && (
                   <span
                     aria-hidden="true"
-                    className="absolute top-2 bottom-2 left-0 w-0.5 rounded-full bg-accent"
+                    className="absolute top-2 bottom-2 left-0 w-0.5 bg-accent"
                   />
                 )}
                 {item.icon}
@@ -135,7 +137,7 @@ export function Sidebar({
       </nav>
 
       <div className="shrink-0 space-y-3 border-t border-border p-4">
-        <div className="space-y-1.5">
+        <div className="fl-inset space-y-1.5 rounded-control p-3">
           <button
             type="button"
             onClick={onOpenSettings}
@@ -156,10 +158,12 @@ export function Sidebar({
               {storageSummary}
             </span>
           </button>
-          <ProgressBar
-            value={storagePercent ?? 0}
-            label="Использование локального хранилища"
-          />
+          {storagePercent !== null && (
+            <ProgressBar
+              value={storagePercent}
+              label="Использование локального хранилища"
+            />
+          )}
           <p className={clsx('text-caption', storageWarning ? 'text-warning' : 'text-text-muted')}>
             {storageWarning
               ? 'Заполнено больше 80% — освободите место или экспортируйте библиотеку.'

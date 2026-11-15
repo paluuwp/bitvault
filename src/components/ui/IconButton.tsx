@@ -1,7 +1,13 @@
 import { clsx } from 'clsx'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-export type IconButtonVariant = 'ghost' | 'secondary' | 'primary' | 'danger'
+export type IconButtonVariant =
+  | 'ghost'
+  | 'secondary'
+  | 'primary'
+  | 'danger'
+  | 'play'
+  | 'transport'
 export type IconButtonSize = 'sm' | 'md'
 
 export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> {
@@ -16,10 +22,14 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
 }
 
 const variantClasses: Record<IconButtonVariant, string> = {
-  ghost: 'text-text-muted hover:bg-surface hover:text-text',
-  secondary: 'border border-border bg-surface text-text hover:bg-surface-hover',
-  primary: 'bg-accent text-accent-ink hover:bg-accent/90',
-  danger: 'bg-danger text-accent-ink hover:bg-danger/90',
+  ghost: 'text-text-muted hover:bg-surface-hover hover:text-text',
+  secondary:
+    'border border-control-border bg-surface-raised text-text hover:border-control-border-hover hover:bg-surface-hover',
+  primary: 'bg-accent text-accent-ink hover:bg-accent-hover active:bg-accent-pressed',
+  danger: 'bg-danger text-danger-ink hover:bg-danger/90',
+  play: 'bg-play text-play-ink hover:bg-play/90 [&_svg]:fill-current',
+  transport:
+    'border border-control-border bg-surface-raised text-text shadow-bevel-raised hover:bg-surface-hover',
 }
 
 const sizeClasses: Record<IconButtonSize, string> = {
@@ -46,7 +56,7 @@ export function IconButton({
       title={tooltip ?? label}
       className={clsx(
         'inline-flex shrink-0 items-center justify-center rounded-control transition-colors disabled:pointer-events-none disabled:opacity-40',
-        active ? 'bg-surface text-text' : variantClasses[variant],
+        active ? 'border border-accent/60 bg-accent-dim text-accent' : variantClasses[variant],
         sizeClasses[size],
         className,
       )}

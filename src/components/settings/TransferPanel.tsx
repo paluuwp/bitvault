@@ -29,10 +29,13 @@ export function TransferPanel({
   return (
     <section
       aria-labelledby="settings-transfer-title"
-      className="rounded-card border border-border bg-bg-subtle p-4"
+      className="fl-panel rounded-card p-3"
     >
       <header>
-        <h3 id="settings-transfer-title" className="text-h2 text-text">
+        <h3
+          id="settings-transfer-title"
+          className="text-label uppercase text-text-subtle"
+        >
           Перенос библиотеки
         </h3>
         <p className="mt-1 text-caption text-text-muted">
@@ -42,8 +45,8 @@ export function TransferPanel({
       </header>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <div className="flex flex-col gap-2 rounded-control border border-border bg-surface/40 p-3">
-          <h4 className="text-body font-medium text-text">Экспорт</h4>
+        <div className="fl-inset flex flex-col gap-2 rounded-control p-2.5">
+          <h4 className="text-label uppercase text-text-subtle">Экспорт</h4>
           <p className="text-caption text-text-muted">
             Создаст архив всей библиотеки и скачает его.
           </p>
@@ -61,8 +64,8 @@ export function TransferPanel({
           {exporting && progress && <TransferStatus progress={progress} />}
         </div>
 
-        <div className="flex flex-col gap-2 rounded-control border border-border bg-surface/40 p-3">
-          <h4 className="text-body font-medium text-text">Импорт</h4>
+        <div className="fl-inset flex flex-col gap-2 rounded-control p-2.5">
+          <h4 className="text-label uppercase text-text-subtle">Импорт</h4>
           <p className="text-caption text-text-muted">
             Загрузите ZIP-архив, созданный BitVault.
           </p>

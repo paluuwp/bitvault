@@ -93,12 +93,12 @@ export function Modal({
         if (closeOnBackdrop && event.target === event.currentTarget) onClose()
       }}
       className={clsx(
-        'm-auto w-[calc(100vw-2rem)] rounded-modal border border-border bg-surface p-0 text-text backdrop:bg-bg/80 backdrop:backdrop-blur-sm',
+        'm-auto w-[calc(100vw-2rem)] rounded-modal border border-control-border bg-surface p-0 text-text shadow-popover backdrop:bg-black/75',
         sizeClasses[size],
       )}
     >
       <div className="flex max-h-[85dvh] flex-col">
-        <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+        <header className="flex items-start justify-between gap-4 border-b border-border bg-surface-raised px-4 py-3 shadow-bevel">
           <div className="min-w-0">
             <h2 id={titleId} className="text-h1 text-text">
               {title}
@@ -115,11 +115,11 @@ export function Modal({
         </header>
 
         {children && (
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>
         )}
 
         {footer && (
-          <footer className="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-3">
+          <footer className="flex flex-wrap justify-end gap-2 border-t border-border px-4 py-3">
             {footer}
           </footer>
         )}

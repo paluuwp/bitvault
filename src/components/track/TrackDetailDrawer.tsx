@@ -207,7 +207,7 @@ export function TrackDetailDrawer({
       >
         {form && track && (
           <div className="flex flex-col gap-5">
-            <div className="flex items-center justify-between gap-3 rounded-control border border-border bg-bg-subtle p-3">
+            <div className="fl-panel flex items-center justify-between gap-3 rounded-card p-3">
               <div className="min-w-0">
                 <p className="text-body font-medium text-text">Избранное</p>
                 <p className="text-caption text-text-muted">
@@ -225,31 +225,37 @@ export function TrackDetailDrawer({
               />
             </div>
 
-            <CoverPicker
-              coverFileId={form.coverFileId}
-              trackName={form.name.trim() || track.name}
-              color={form.color}
-              error={errors.cover}
-              disabled={saving}
-              onChange={handleCoverChange}
-              onError={(message) => setFieldError('cover', message)}
-              onBusyChange={setCoverSaving}
-            />
+            <div className="fl-panel rounded-card p-3">
+              <CoverPicker
+                coverFileId={form.coverFileId}
+                trackName={form.name.trim() || track.name}
+                color={form.color}
+                error={errors.cover}
+                disabled={saving}
+                onChange={handleCoverChange}
+                onError={(message) => setFieldError('cover', message)}
+                onBusyChange={setCoverSaving}
+              />
+            </div>
 
-            <TrackMetaForm
-              form={form}
-              errors={errors}
-              disabled={busy}
-              onChange={handleFormChange}
-              onClearError={clearError}
-              onError={setFieldError}
-            />
+            <div className="fl-panel rounded-card p-3">
+              <TrackMetaForm
+                form={form}
+                errors={errors}
+                disabled={busy}
+                onChange={handleFormChange}
+                onClearError={clearError}
+                onError={setFieldError}
+              />
+            </div>
 
-            <AttachmentList
-              fileIds={form.attachmentFileIds}
-              disabled={busy}
-              onRemove={handleRemoveAttachment}
-            />
+            <div className="fl-panel rounded-card p-3">
+              <AttachmentList
+                fileIds={form.attachmentFileIds}
+                disabled={busy}
+                onRemove={handleRemoveAttachment}
+              />
+            </div>
 
             {submitError && (
               <p

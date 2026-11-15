@@ -174,7 +174,7 @@ export function AppShell({
           <main
             id="main-content"
             tabIndex={-1}
-            className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:p-content"
+            className="min-h-0 flex-1 overflow-y-auto px-content py-4"
           >
             {children}
           </main>
@@ -188,7 +188,7 @@ export function AppShell({
           <div
             aria-hidden="true"
             onClick={closeSidebar}
-            className="absolute inset-0 bg-bg/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70"
           />
           <div
             ref={panelRef}
@@ -196,7 +196,7 @@ export function AppShell({
             aria-modal="true"
             aria-label="Боковое меню"
             tabIndex={-1}
-            className="absolute inset-y-0 left-0 flex w-[min(88vw,320px)] flex-col border-r border-border bg-bg-subtle outline-none"
+            className="absolute inset-y-0 left-0 flex w-[min(88vw,320px)] flex-col border-r border-control-border bg-bg-subtle outline-none"
           >
             <Sidebar
               activeSection={activeSection}

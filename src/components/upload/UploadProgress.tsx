@@ -13,10 +13,13 @@ export function UploadProgress({ progress }: UploadProgressProps) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-body text-text">
+        <span className="font-mono text-mono-badge text-text">
           Обработано {clamped} из {total}
         </span>
-        <span className="min-w-0 truncate text-caption text-text-muted" title={label}>
+        <span
+          className="min-w-0 truncate font-mono text-mono-badge text-text-muted"
+          title={label}
+        >
           {label}
         </span>
       </div>

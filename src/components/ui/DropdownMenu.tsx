@@ -29,7 +29,7 @@ export function DropdownMenu({
   label,
   items,
   trigger,
-  triggerClassName = 'text-text-muted hover:bg-surface hover:text-text',
+  triggerClassName = 'text-text-muted hover:bg-surface-hover hover:text-text',
   menuClassName,
   align = 'end',
   placement = 'bottom',
@@ -102,7 +102,7 @@ export function DropdownMenu({
           role="menu"
           aria-label={label}
           className={clsx(
-            'absolute z-30 min-w-44 overflow-hidden rounded-control border border-border bg-surface p-1',
+            'absolute z-30 min-w-44 overflow-hidden rounded-control border border-control-border bg-surface-raised p-1 shadow-popover',
             align === 'end' ? 'right-0' : 'left-0',
             placement === 'top' ? 'bottom-full mb-1' : 'top-full mt-1',
             menuClassName,
@@ -121,7 +121,7 @@ export function DropdownMenu({
                 triggerRef.current?.focus()
               }}
               className={clsx(
-                'flex w-full items-center gap-2 rounded-md px-2.5 py-2.5 text-left text-body transition-colors disabled:pointer-events-none disabled:opacity-40',
+                'flex w-full items-center gap-2 rounded-chip px-2.5 py-2.5 text-left text-body transition-colors disabled:pointer-events-none disabled:opacity-40',
                 item.variant === 'danger'
                   ? 'text-danger hover:bg-danger/10'
                   : 'text-text-muted hover:bg-surface-hover hover:text-text',

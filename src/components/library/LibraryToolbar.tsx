@@ -1,3 +1,4 @@
+import { clsx } from 'clsx'
 import { ArrowDownNarrowWide, ArrowUpNarrowWide, Heart, RotateCcw } from 'lucide-react'
 import { Button, IconButton, Select } from '@/components/ui'
 import type { TagStat } from '@/hooks/useLibraryFilters'
@@ -43,7 +44,7 @@ export function LibraryToolbar({
     : formatTrackCount(resultCount)
 
   return (
-    <div className="flex flex-col gap-3 rounded-card border border-border bg-surface/40 p-3">
+    <div className="fl-panel flex flex-col gap-3 rounded-card px-3 py-2">
       <div className="flex flex-wrap items-center gap-2">
         {showFavoritesFilter && (
           <Button
@@ -51,10 +52,19 @@ export function LibraryToolbar({
             size="sm"
             aria-pressed={onlyFavorites}
             leftIcon={
-              <Heart
-                className={onlyFavorites ? 'h-4 w-4 fill-current' : 'h-4 w-4'}
-                aria-hidden="true"
-              />
+              <span className="inline-flex items-center gap-1.5">
+                <Heart
+                  className={onlyFavorites ? 'h-4 w-4 fill-current' : 'h-4 w-4'}
+                  aria-hidden="true"
+                />
+                <span
+                  aria-hidden="true"
+                  className={clsx(
+                    'fl-led',
+                    onlyFavorites ? 'text-favorite' : 'text-text-subtle',
+                  )}
+                />
+              </span>
             }
             onClick={onToggleOnlyFavorites}
           >

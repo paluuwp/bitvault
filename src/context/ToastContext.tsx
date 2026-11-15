@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- провайдер и хук по плану живут в одном файле */
 import { clsx } from 'clsx'
-import { CircleCheck, CircleX, Info, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import {
   createContext,
   useCallback,
@@ -37,16 +37,10 @@ const ToastContext = createContext<ToastContextValue | null>(null)
 const MAX_TOASTS = 3
 const TOAST_TIMEOUT_MS = 4000
 
-const variantIcons: Record<ToastVariant, ReactNode> = {
-  info: <Info className="h-4 w-4" aria-hidden="true" />,
-  success: <CircleCheck className="h-4 w-4" aria-hidden="true" />,
-  error: <CircleX className="h-4 w-4" aria-hidden="true" />,
-}
-
-const variantIconClasses: Record<ToastVariant, string> = {
-  info: 'text-info',
-  success: 'text-accent',
-  error: 'text-danger',
+const variantLedClasses: Record<ToastVariant, string> = {
+  info: 'text-led-cyan',
+  success: 'text-led-green',
+  error: 'text-led-red',
 }
 
 function ToastCard({
@@ -62,10 +56,11 @@ function ToastCard({
   }, [item.id, onDismiss])
 
   return (
-    <div className="pointer-events-auto flex items-start gap-3 rounded-control border border-border bg-surface p-3">
-      <span className={clsx('mt-0.5 shrink-0', variantIconClasses[item.variant])}>
-        {variantIcons[item.variant]}
-      </span>
+    <div className="pointer-events-auto flex items-start gap-3 rounded-control border border-border bg-surface p-3 shadow-popover">
+      <span
+        aria-hidden="true"
+        className={clsx('fl-led mt-1.5 shrink-0', variantLedClasses[item.variant])}
+      />
       <div className="min-w-0 flex-1">
         <p className="text-body font-medium text-text">{item.title}</p>
         {item.description && (

@@ -142,7 +142,9 @@ export function ImportDialog({
             <label
               className={clsx(
                 'flex cursor-pointer items-start gap-3 rounded-control border p-3 transition-colors',
-                mode === 'merge' ? 'border-accent' : 'border-border hover:border-border-strong',
+                mode === 'merge'
+                  ? 'border-accent bg-accent/10'
+                  : 'border-border bg-surface hover:border-border-strong',
               )}
             >
               <input
@@ -165,7 +167,9 @@ export function ImportDialog({
             <label
               className={clsx(
                 'flex cursor-pointer items-start gap-3 rounded-control border p-3 transition-colors',
-                mode === 'replace' ? 'border-danger' : 'border-border hover:border-border-strong',
+                mode === 'replace'
+                  ? 'border-danger bg-danger/10'
+                  : 'border-border bg-surface hover:border-border-strong',
               )}
             >
               <input

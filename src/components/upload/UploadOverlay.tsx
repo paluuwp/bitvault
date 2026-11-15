@@ -13,10 +13,12 @@ export function UploadOverlay({ progress }: UploadOverlayProps) {
     <div
       role="status"
       aria-live="polite"
-      className="fixed top-20 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] rounded-card border border-border bg-surface p-4 shadow-lg"
+      className="fixed top-20 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-card border border-control-border bg-surface shadow-popover"
     >
-      <p className="mb-2 text-body font-medium text-text">Добавление битов</p>
-      <UploadProgress progress={progress} />
+      <div className="fl-titlebar">Добавление битов</div>
+      <div className="p-4">
+        <UploadProgress progress={progress} />
+      </div>
     </div>
   )
 }

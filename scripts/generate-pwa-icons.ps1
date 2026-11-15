@@ -1,4 +1,4 @@
-# Generates PWA icons for BitVault: dark background with lime equalizer bars.
+# Generates PWA icons for BitVault: dark background with orange equalizer bars.
 # Run once from the repository root:  powershell -ExecutionPolicy Bypass -File scripts\generate-pwa-icons.ps1
 Add-Type -AssemblyName System.Drawing
 
@@ -7,8 +7,8 @@ $iconsDir = Join-Path $root 'public\icons'
 New-Item -ItemType Directory -Force $iconsDir | Out-Null
 
 $bg = [System.Drawing.ColorTranslator]::FromHtml('#0A0A0D')
-$lime = [System.Drawing.ColorTranslator]::FromHtml('#D8FF3E')
-$limeDim = [System.Drawing.ColorTranslator]::FromHtml('#A3C220')
+$accent = [System.Drawing.ColorTranslator]::FromHtml('#F7931E')
+$accentDim = [System.Drawing.ColorTranslator]::FromHtml('#C97712')
 
 function New-RoundedPath([float]$x, [float]$y, [float]$w, [float]$h, [float]$r) {
   $path = New-Object System.Drawing.Drawing2D.GraphicsPath
@@ -31,7 +31,7 @@ function New-Icon([int]$size, [float]$markWidth, [string]$file) {
   $barWidth = $markWidth * 0.17
   $gap = $markWidth * 0.11
   $heights = @(0.62, 0.94, 0.76, 0.48)
-  $colors = @($lime, $lime, $limeDim, $lime)
+  $colors = @($accent, $accent, $accentDim, $accent)
   $total = 4 * $barWidth + 3 * $gap
   $startX = ($size - $total) / 2
   $centerY = $size / 2
@@ -69,7 +69,7 @@ $markWidth = 104
 $barWidth = $markWidth * 0.17
 $gap = $markWidth * 0.11
 $heights = @(0.62, 0.94, 0.76, 0.48)
-$colors = @($lime, $lime, $limeDim, $lime)
+$colors = @($accent, $accent, $accentDim, $accent)
 $total = 4 * $barWidth + 3 * $gap
 $startX = (180 - $total) / 2
 $centerY = 90

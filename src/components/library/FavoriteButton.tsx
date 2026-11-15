@@ -31,10 +31,10 @@ export function FavoriteButton({
       disabled={disabled}
       onClick={() => onToggle?.()}
       className={clsx(
-        'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex h-10 w-10 shrink-0 items-center justify-center gap-1 rounded-control border transition-colors disabled:pointer-events-none disabled:opacity-40',
         variant === 'overlay'
-          ? 'bg-bg/60 backdrop-blur-sm hover:bg-bg/80'
-          : 'hover:bg-surface',
+          ? 'border-control-border bg-bg/70 hover:bg-bg/80'
+          : 'border-border hover:bg-surface-raised',
         isFavorite
           ? 'text-favorite'
           : variant === 'overlay'
@@ -44,6 +44,7 @@ export function FavoriteButton({
       )}
     >
       <Heart className={clsx('h-5 w-5', isFavorite && 'fill-current')} aria-hidden="true" />
+      {isFavorite && <span aria-hidden="true" className="fl-led text-favorite" />}
     </button>
   )
 }

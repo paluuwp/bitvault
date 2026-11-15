@@ -93,9 +93,12 @@ export function AttachmentList({ fileIds, disabled = false, onRemove }: Attachme
           Вложений нет. Файл проекта, добавленный вместе с битом, появится здесь.
         </p>
       ) : (
-        <ul className="divide-y divide-border rounded-control border border-border">
+        <ul className="fl-inset rounded-control">
           {items.map((item) => (
-            <li key={item.id} className="flex items-center gap-2 px-3 py-2">
+            <li
+              key={item.id}
+              className="flex items-center gap-2 border-b border-border px-3 py-2 last:border-b-0"
+            >
               <FileArchive className="h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
               <span
                 className={

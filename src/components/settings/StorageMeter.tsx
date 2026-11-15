@@ -42,11 +42,14 @@ export function StorageMeter({ info, loading, onRequestPersistence }: StorageMet
   return (
     <section
       aria-labelledby="settings-storage-title"
-      className="rounded-card border border-border bg-bg-subtle p-4"
+      className="fl-panel rounded-card p-3"
     >
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 id="settings-storage-title" className="flex items-center gap-2 text-h2 text-text">
+          <h3
+            id="settings-storage-title"
+            className="flex items-center gap-2 text-label uppercase text-text-subtle"
+          >
             <HardDrive className="h-4 w-4 text-text-muted" aria-hidden="true" />
             Хранилище
           </h3>
@@ -64,9 +67,9 @@ export function StorageMeter({ info, loading, onRequestPersistence }: StorageMet
           Браузер не сообщает данные о локальном хранилище.
         </p>
       ) : hasNumbers ? (
-        <div className="mt-3 flex flex-col gap-1.5">
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="text-body text-text">
+        <div className="mt-3 flex flex-col gap-2">
+          <div className="fl-inset flex items-baseline justify-between gap-3 rounded-control p-2.5">
+            <span className="font-mono text-mono-badge text-text">
               {formatBytes(usage)} из {formatBytes(quota)}
             </span>
             <span
@@ -97,7 +100,7 @@ export function StorageMeter({ info, loading, onRequestPersistence }: StorageMet
       )}
 
       <div className="mt-4 flex flex-col gap-2 border-t border-border pt-3">
-        <p className="flex items-start gap-2 text-caption text-text-muted">
+        <p className="fl-inset flex items-start gap-2 rounded-control p-2.5 text-caption text-text-muted">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {info?.persisted
             ? 'Постоянное хранение включено — браузер не удалит данные автоматически.'

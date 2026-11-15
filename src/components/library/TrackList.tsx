@@ -1,0 +1,42 @@
+import type { Track } from '@/types/models'
+import { TrackRow } from './TrackRow'
+import type { TrackMenuAction } from './trackMenu'
+
+export interface TrackListProps {
+  tracks: Track[]
+  label: string
+  selectedId?: string | null
+  onPlay?: (track: Track) => void
+  onOpen?: (track: Track) => void
+  onToggleFavorite?: (track: Track) => void
+  onMenuAction?: (track: Track, action: TrackMenuAction) => void
+}
+
+export function TrackList({
+  tracks,
+  label,
+  selectedId = null,
+  onPlay,
+  onOpen,
+  onToggleFavorite,
+  onMenuAction,
+}: TrackListProps) {
+  return (
+    <ul
+      aria-label={label}
+      className="divide-y divide-border rounded-card border border-border bg-surface/40"
+    >
+      {tracks.map((track) => (
+        <TrackRow
+          key={track.id}
+          track={track}
+          selected={track.id === selectedId}
+          onPlay={onPlay}
+          onOpen={onOpen}
+          onToggleFavorite={onToggleFavorite}
+          onMenuAction={onMenuAction}
+        />
+      ))}
+    </ul>
+  )
+}

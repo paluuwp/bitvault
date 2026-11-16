@@ -604,8 +604,15 @@ export function libraryRoutes(deps: LibraryRoutesDeps): Hono<AppEnv> {
           ? AUDIO_MAX_BYTES
           : ATTACHMENT_MAX_BYTES
 
+    // Запись потока в R2 требует известной длины тела: иначе runtime не может
+    // вычислить размер объекта и отклоняет put. Браузер всегда присылает
+    // Content-Length для Blob-тела; остальным клиентам отвечаем 400.
     const declared = readDeclaredLength(c)
-    if (declared !== null && declared > maxBytes) {
+    if (declared === null) {
+      badRequest('Не передан Content-Length файла.')
+    }
+    if (declared === 0) badRequest('Пустое тело файла.')
+    if (declared > maxBytes) {
       throw new ApiError('PAYLOAD_TOO_LARGE', 'Файл больше допустимого размера.')
     }
 
@@ -614,15 +621,29 @@ export function libraryRoutes(deps: LibraryRoutesDeps): Hono<AppEnv> {
       throw new ApiError('CONFLICT', 'Файл с таким ID уже существует в другой библиотеке.')
     }
 
-    const bytes = new Uint8Array(await c.req.arrayBuffer())
-    if (bytes.byteLength === 0) badRequest('Пустое тело файла.')
-    if (bytes.byteLength > maxBytes) {
-      throw new ApiError('PAYLOAD_TOO_LARGE', 'Файл больше допустимого размера.')
-    }
+    // Тело не буферизуем в памяти: крупный mp3 не влезает в лимит памяти
+    // Workers Free (128 МБ). Поток известной длины пишется в R2 как есть,
+    // размер дополнительно сверяем с фактически записанным объектом.
+    const body = c.req.raw.body
+    if (body === null) badRequest('Пустое тело файла.')
 
     // Ключ R2 не содержит имени файла: имя живёт только в D1.
     const r2Key = `libraries/${libraryId}/files/${fileId}`
-    await c.env.BUCKET.put(r2Key, bytes, { httpMetadata: { contentType: mimeType } })
+    const object = await c.env.BUCKET.put(r2Key, body, {
+      httpMetadata: { contentType: mimeType },
+    })
+
+    if (object.size === 0) {
+      if (!existing) await deleteQuietly(c.env, r2Key)
+      badRequest('Пустое тело файла.')
+    }
+    // Страховка на случай, если объявленная длина не совпала с фактической.
+    // Как и в ветках ниже, при перезаписи существующий объект не удаляем:
+    // строка D1 указывает на тот же ключ, иначе файл станет 404.
+    if (object.size > maxBytes) {
+      if (!existing) await deleteQuietly(c.env, r2Key)
+      throw new ApiError('PAYLOAD_TOO_LARGE', 'Файл больше допустимого размера.')
+    }
 
     let saved: FileRecord | null
     try {
@@ -632,7 +653,7 @@ export function libraryRoutes(deps: LibraryRoutesDeps): Hono<AppEnv> {
         kind,
         r2Key,
         mimeType,
-        size: bytes.byteLength,
+        size: object.size,
         originalName,
         now: deps.now().toISOString(),
       })

@@ -168,6 +168,20 @@ async function writeLocalTrack(track: Track): Promise<void> {
   })
 }
 
+/**
+ * Сервер не принимает файлы больше лимита тела запроса Worker. Проверяем до
+ * отправки и для уже сохранённых файлов (например, при переносе в аккаунт),
+ * иначе браузер упрётся в лимит платформы и покажет непонятную ошибку.
+ */
+function assertCloudFileSize(file: StoredFile): void {
+  if (file.size <= LIMITS.cloudFileMaxBytes) return
+  const limitMb = Math.floor(LIMITS.cloudFileMaxBytes / (1024 * 1024))
+  throw new AppError(
+    'VALIDATION',
+    `«${file.originalName}» больше ${limitMb} МБ — сервер аккаунта не принимает такие файлы. Трек останется только на этом устройстве.`,
+  )
+}
+
 async function uploadMissingFiles(
   context: CloudContext,
   track: Track,
@@ -180,6 +194,7 @@ async function uploadMissingFiles(
     if (!file) continue
     if (file.cloudLibraryId === context.libraryId && file.cloudUploadedAt) continue
 
+    assertCloudFileSize(file)
     onProgress?.(`Загрузка «${file.originalName}»…`)
     try {
       await context.api.uploadFile(context.token, context.libraryId, file.id, file.blob, {

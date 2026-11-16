@@ -535,6 +535,28 @@ describe('лимит сервера на размер файла', () => {
     expect(await readAllTracks()).toHaveLength(0)
     expect(await withDatabase((database) => database.getAll('files'))).toHaveLength(0)
   })
+
+  it('не отправляет на сервер уже сохранённый файл больше 90 МБ', async () => {
+    writeSession()
+    const context = getCloudContext()
+    if (!context) throw new Error('Нет контекста')
+
+    await withDatabase(async (database) => {
+      await database.put('files', {
+        id: 'file-big',
+        kind: 'audio',
+        blob: new Blob(['x']),
+        mimeType: 'audio/mpeg',
+        size: 91 * 1024 * 1024,
+        originalName: 'big.mp3',
+        createdAt: '2026-11-10T10:00:00.000Z',
+      })
+    })
+    const track = await createTrack({ name: 'Big Beat', audioFileId: 'file-big' })
+
+    await expect(pushTrackToCloud(context, track)).rejects.toThrow('больше 90 МБ')
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
 })
 
 describe('резервная копия', () => {

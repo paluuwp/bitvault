@@ -15,6 +15,10 @@ import type {
 } from './types'
 
 const DEFAULT_TIMEOUT_MS = 15_000
+/** Количество попыток по умолчанию для обычных запросов. */
+const DEFAULT_ATTEMPTS = 3
+/** Базовая задержка перед повтором; растёт экспоненциально. */
+const DEFAULT_RETRY_DELAY_MS = 400
 
 export interface CreateRemoteApiOptions {
   /** Базовый URL API, например https://host/api/v1 (без завершающего слэша). */
@@ -23,6 +27,8 @@ export interface CreateRemoteApiOptions {
   fetchImpl?: typeof fetch
   /** Таймаут запроса в миллисекундах. */
   timeoutMs?: number
+  /** Базовая задержка перед повтором в миллисекундах; по умолчанию 400. */
+  retryDelayMs?: number
 }
 
 export interface RemoteApi {
@@ -51,6 +57,8 @@ interface RequestSpec {
   context: AuthMessageContext
   /** Переопределение таймаута для длинных запросов (загрузка файлов). */
   timeoutMs?: number
+  /** Число попыток; по умолчанию DEFAULT_ATTEMPTS. */
+  attempts?: number
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -77,19 +85,38 @@ function httpError(
   return new RemoteApiError('http', messageForFailure('http', context, code), { code, status })
 }
 
+/** Временной сбой: имеет смысл повторить запрос. */
+function isRetryableFailure(error: unknown): boolean {
+  return (
+    error instanceof RemoteApiError &&
+    (error.failure === 'network' || error.failure === 'timeout')
+  )
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
+
 /**
- * Выполняет запрос с таймаутом.
+ * Создаёт отправитель запросов с таймаутом и повторами.
  *
- * Таймаут реализован через AbortController и гонку промисов: даже если
- * инъецированный fetch игнорирует signal, запрос завершится ошибкой timeout.
- * Таймер всегда очищается, ретраев нет.
+ * Одна попытка (`sendOnce`) реализует таймаут через AbortController и гонку
+ * промисов: даже если инъецированный fetch игнорирует signal, запрос завершится
+ * ошибкой timeout. Таймер всегда очищается.
+ *
+ * Обёртка `send` повторяет попытку только при сетевом сбое или таймауте —
+ * HTTP-ошибки и ошибки разбора не повторяются. Задержка между попытками растёт
+ * экспоненциально: retryDelayMs * 3 ** (attempt - 1).
  */
 function createSender(
   baseUrl: string,
   fetchImpl: typeof fetch,
   timeoutMs: number,
+  retryDelayMs: number,
 ): (spec: RequestSpec) => Promise<Response> {
-  return async function send(spec: RequestSpec): Promise<Response> {
+  async function sendOnce(spec: RequestSpec): Promise<Response> {
     const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout> | undefined
 
@@ -119,6 +146,20 @@ function createSender(
       throw failureError('network', spec.context, error)
     } finally {
       if (timer !== undefined) clearTimeout(timer)
+    }
+  }
+
+  return async function send(spec: RequestSpec): Promise<Response> {
+    const attempts = spec.attempts ?? DEFAULT_ATTEMPTS
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        return await sendOnce(spec)
+      } catch (error) {
+        // На последней попытке (или при неретраибельной ошибке) пробрасываем
+        // исходную ошибку без изменений.
+        if (attempt >= attempts || !isRetryableFailure(error)) throw error
+        await delay(retryDelayMs * 3 ** (attempt - 1))
+      }
     }
   }
 }
@@ -233,6 +274,8 @@ function authHeaders(token: string): Record<string, string> {
 const FILE_KINDS = ['audio', 'cover', 'attachment'] as const
 /** Загрузка файла может идти минутами: отдельный таймаут. */
 const UPLOAD_TIMEOUT_MS = 10 * 60 * 1000
+/** Тело загрузки большое, каждая попытка дорогая — не больше двух. */
+const UPLOAD_ATTEMPTS = 2
 
 function parseRemoteFile(value: unknown): RemoteFile | null {
   if (!isRecord(value)) return null
@@ -396,7 +439,8 @@ export function createRemoteApi(options: CreateRemoteApiOptions): RemoteApi {
   const baseUrl = normalizeBaseUrl(options.baseUrl)
   const fetchImpl = options.fetchImpl ?? fetch
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
-  const send = createSender(baseUrl, fetchImpl, timeoutMs)
+  const retryDelayMs = options.retryDelayMs ?? DEFAULT_RETRY_DELAY_MS
+  const send = createSender(baseUrl, fetchImpl, timeoutMs, retryDelayMs)
 
   return {
     async loginWithGoogle(credential: string): Promise<LoginResponse> {
@@ -433,6 +477,9 @@ export function createRemoteApi(options: CreateRemoteApiOptions): RemoteApi {
         path: '/auth/logout',
         headers: authHeaders(token),
         context: 'logout',
+        // Сессия уже отозвана на сервере; повтор с тем же токеном даст 401
+        // и лишнюю ошибку в интерфейсе.
+        attempts: 1,
       })
       if (!response.ok) throw await httpErrorFromResponse(response, 'logout')
       // 204 — успех без тела.
@@ -444,6 +491,7 @@ export function createRemoteApi(options: CreateRemoteApiOptions): RemoteApi {
         path: '/auth/logout-all',
         headers: authHeaders(token),
         context: 'logout',
+        attempts: 1,
       })
       if (!response.ok) throw await httpErrorFromResponse(response, 'logout')
       // 204 — успех без тела.
@@ -507,6 +555,7 @@ export function createRemoteApi(options: CreateRemoteApiOptions): RemoteApi {
         body,
         context: 'library',
         timeoutMs: UPLOAD_TIMEOUT_MS,
+        attempts: UPLOAD_ATTEMPTS,
       })
       if (!response.ok) throw await httpErrorFromResponse(response, 'library')
       return parseFile(await readJson(response, 'library'), 'library')

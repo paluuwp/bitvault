@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createRemoteApi } from '../api/client'
 import { RemoteApiError } from '../api/errors'
-import type { ApiErrorCode, LoginResponse, MeResponse } from '../api/types'
+import type { ApiErrorCode, LoginResponse, MeResponse, RemoteFile } from '../api/types'
 
 const BASE_URL = 'https://bitvault-api.bitvault-api.workers.dev/api/v1'
 
@@ -26,6 +26,14 @@ const ME_PAYLOAD: MeResponse = {
   },
   libraries: [{ id: 'library-1', name: 'Моя библиотека', role: 'owner' }],
   expiresAt: '2026-12-31T10:00:00.000Z',
+}
+
+const FILE_PAYLOAD: RemoteFile = {
+  id: 'file-1',
+  kind: 'audio',
+  name: 'track.mp3',
+  mimeType: 'audio/mpeg',
+  size: 3,
 }
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -233,7 +241,7 @@ describe('createRemoteApi: сбои транспорта и разбора', () 
     const fetchImpl = vi.fn<typeof fetch>().mockRejectedValue(
       new TypeError('Failed to fetch'),
     )
-    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl })
+    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, retryDelayMs: 0 })
 
     const error = await captureError(() => api.loginWithGoogle('credential'))
 
@@ -246,7 +254,7 @@ describe('createRemoteApi: сбои транспорта и разбора', () 
   it('трактует AbortError как таймаут', async () => {
     const abortError = Object.assign(new Error('Aborted'), { name: 'AbortError' })
     const fetchImpl = vi.fn<typeof fetch>().mockRejectedValue(abortError)
-    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl })
+    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, retryDelayMs: 0 })
 
     const error = await captureError(() => api.me('session-token-value'))
 
@@ -257,10 +265,15 @@ describe('createRemoteApi: сбои транспорта и разбора', () 
   it('завершает запрос по таймауту, даже если fetch не отвечает', async () => {
     vi.useFakeTimers()
     const fetchImpl = vi.fn<typeof fetch>(() => new Promise<Response>(() => {}))
-    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, timeoutMs: 100 })
+    const api = createRemoteApi({
+      baseUrl: BASE_URL,
+      fetchImpl,
+      timeoutMs: 100,
+      retryDelayMs: 0,
+    })
 
     const pending = captureError(() => api.me('session-token-value'))
-    await vi.advanceTimersByTimeAsync(100)
+    await vi.runAllTimersAsync()
     const error = await pending
 
     expect(error.failure).toBe('timeout')
@@ -292,6 +305,119 @@ describe('createRemoteApi: сбои транспорта и разбора', () 
     const error = await captureError(() => api.loginWithGoogle('credential'))
 
     expect(error.failure).toBe('parse')
+  })
+})
+
+describe('createRemoteApi: повторные попытки', () => {
+  it('повторяет запрос после сетевой ошибки и возвращает результат', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(jsonResponse(ME_PAYLOAD))
+    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, retryDelayMs: 0 })
+
+    const result = await api.me('session-token-value')
+
+    expect(result).toEqual(ME_PAYLOAD)
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  it('исчерпывает все попытки при постоянной сетевой ошибке', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockRejectedValue(new TypeError('Failed to fetch'))
+    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, retryDelayMs: 0 })
+
+    const error = await captureError(() => api.loginWithGoogle('credential'))
+
+    expect(error.failure).toBe('network')
+    expect(error.message).toContain('Нет связи с сервером')
+    expect(fetchImpl).toHaveBeenCalledTimes(3)
+  })
+
+  it('не повторяет HTTP-ошибку', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async () =>
+      jsonResponse({ error: { code: 'INTERNAL', message: 'boom' } }, 500),
+    )
+    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, retryDelayMs: 0 })
+
+    const error = await captureError(() => api.me('session-token-value'))
+
+    expect(error.failure).toBe('http')
+    expect(error.status).toBe(500)
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+
+  it('повторяет загрузку файла после сетевой ошибки', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(jsonResponse(FILE_PAYLOAD))
+    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, retryDelayMs: 0 })
+
+    const result = await api.uploadFile(
+      'session-token-value',
+      'library-1',
+      'file-1',
+      new Blob(['abc'], { type: 'audio/mpeg' }),
+      { kind: 'audio', name: 'track.mp3', mimeType: 'audio/mpeg' },
+    )
+
+    expect(result).toEqual(FILE_PAYLOAD)
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  it('делает для загрузки файла ровно две попытки', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockRejectedValue(new TypeError('Failed to fetch'))
+    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, retryDelayMs: 0 })
+
+    const error = await captureError(() =>
+      api.uploadFile(
+        'session-token-value',
+        'library-1',
+        'file-1',
+        new Blob(['abc'], { type: 'audio/mpeg' }),
+        { kind: 'audio', name: 'track.mp3', mimeType: 'audio/mpeg' },
+      ),
+    )
+
+    expect(error.failure).toBe('network')
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
+
+  it('повторяет таймаут и в итоге отдаёт failure timeout', async () => {
+    vi.useFakeTimers()
+    const fetchImpl = vi.fn<typeof fetch>(() => new Promise<Response>(() => {}))
+    const api = createRemoteApi({
+      baseUrl: BASE_URL,
+      fetchImpl,
+      timeoutMs: 100,
+      retryDelayMs: 0,
+    })
+
+    const pending = captureError(() => api.me('session-token-value'))
+    await vi.runAllTimersAsync()
+    const error = await pending
+
+    expect(error.failure).toBe('timeout')
+    expect(error.message).toContain('Сервер не ответил вовремя')
+    expect(fetchImpl).toHaveBeenCalledTimes(3)
+  })
+
+  it('не повторяет выход: сессия на сервере уже отозвана', async () => {
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockRejectedValue(new TypeError('Failed to fetch'))
+    const api = createRemoteApi({ baseUrl: BASE_URL, fetchImpl, retryDelayMs: 0 })
+
+    const logoutError = await captureError(() => api.logout('session-token-value'))
+    const allError = await captureError(() => api.logoutAll('session-token-value'))
+
+    expect(logoutError.failure).toBe('network')
+    expect(allError.failure).toBe('network')
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
   })
 })
 

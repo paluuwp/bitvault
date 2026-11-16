@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { FileDto, LibrarySummary, SignedFileUrl, TrackDto } from '../src/routes/library'
 import type { ErrorBody, Harness, LoginBody } from './helpers'
-import { MemoryStore, createHarness, loginRequest, readJson } from './helpers'
+import { MemoryBucket, MemoryStore, createHarness, loginRequest, readJson } from './helpers'
 
 const AUDIO_BYTES = new TextEncoder().encode('RIFFdata')
 const COVER_BYTES = new TextEncoder().encode('PNGdata')
@@ -19,6 +19,24 @@ interface Setup {
   harness: Harness
   token: string
   libraryId: string
+}
+
+/**
+ * Бакет для проверки страховки по фактическому размеру: вторая запись
+ * сообщает размер на байт больше лимита обложки, хотя тела маленькие.
+ */
+class OversizeOnSecondPutBucket extends MemoryBucket {
+  private puts = 0
+
+  override async put(
+    key: string,
+    value: unknown,
+    options?: Parameters<MemoryBucket['put']>[2],
+  ): Promise<Awaited<ReturnType<MemoryBucket['put']>>> {
+    const stored = await super.put(key, value, options)
+    this.puts += 1
+    return this.puts === 2 ? { ...stored, size: 10 * MIB + 1 } : stored
+  }
 }
 
 async function setup(): Promise<Setup> {
@@ -70,11 +88,62 @@ function uploadFile(
 ): Promise<Response> {
   const query = new URLSearchParams({ kind })
   if (name !== undefined) query.set('name', name)
+  // Как браузер при загрузке Blob: длина тела известна заранее.
+  const headers = {
+    ...auth(token),
+    'Content-Type': mimeType,
+    'Content-Length': String(bytes.byteLength),
+    ...extraHeaders,
+  }
   return request(harness, `/libraries/${libraryId}/files/${fileId}?${query.toString()}`, {
     method: 'PUT',
-    headers: { ...auth(token), 'Content-Type': mimeType, ...extraHeaders },
+    headers,
     body: bytes,
   })
+}
+
+/** Потоковое тело из готовых чанков. */
+function chunkedStream(...chunks: Uint8Array[]): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const chunk of chunks) controller.enqueue(chunk)
+      controller.close()
+    },
+  })
+}
+
+/**
+ * PUT файла с потоковым телом. Request собирается напрямую, чтобы управлять
+ * заголовком длины: `declaredLength === null` — тела неизвестной длины,
+ * число — явный Content-Length. `duplex` нужен Node для потокового тела,
+ * но отсутствует в типах workers-types.
+ */
+function streamRequest(
+  token: string,
+  libraryId: string,
+  fileId: string,
+  kind: string,
+  body: ReadableStream<Uint8Array>,
+  mimeType: string,
+  name?: string,
+  declaredLength: number | null = null,
+): Request {
+  const query = new URLSearchParams({ kind })
+  if (name !== undefined) query.set('name', name)
+  const headers: Record<string, string> = {
+    ...auth(token),
+    'Content-Type': mimeType,
+  }
+  if (declaredLength !== null) headers['Content-Length'] = String(declaredLength)
+  return new Request(
+    `http://localhost/api/v1/libraries/${libraryId}/files/${fileId}?${query.toString()}`,
+    {
+      method: 'PUT',
+      headers,
+      body,
+      duplex: 'half',
+    } as RequestInit,
+  )
 }
 
 function putTrack(
@@ -738,6 +807,152 @@ describe('PUT /libraries/:libraryId/files/:fileId', () => {
       400,
       'BAD_REQUEST',
     )
+  })
+})
+
+describe('PUT /libraries/:libraryId/files/:fileId с потоковым телом', () => {
+  it('пишет поток известной длины и сохраняет фактический размер', async () => {
+    const context = await setup()
+    const first = new TextEncoder().encode('ID3-stream-audio-')
+    const second = new TextEncoder().encode('tail')
+    const expected = new Uint8Array([...first, ...second])
+
+    const streamReq = streamRequest(
+      context.token,
+      context.libraryId,
+      'stream-audio',
+      'audio',
+      chunkedStream(first, second),
+      'audio/mpeg',
+      'stream.mp3',
+      expected.byteLength,
+    )
+    // Тело приходит потоком: R2 получает его без буферизации в памяти.
+    expect(streamReq.headers.get('content-length')).toBe(String(expected.byteLength))
+
+    const response = await context.harness.app.request(
+      streamReq,
+      undefined,
+      context.harness.env,
+    )
+    expect(response.status).toBe(200)
+    const dto = await readJson<FileDto>(response)
+    expect(dto).toEqual({
+      id: 'stream-audio',
+      kind: 'audio',
+      name: 'stream.mp3',
+      mimeType: 'audio/mpeg',
+      size: expected.byteLength,
+    })
+
+    const key = `libraries/${context.libraryId}/files/stream-audio`
+    expect(context.harness.bucket.objects.get(key)?.bytes).toEqual(expected)
+    expect(context.harness.store.files.get('stream-audio')?.size).toBe(expected.byteLength)
+  })
+
+  it('без Content-Length → 400: R2 не принимает поток неизвестной длины', async () => {
+    const context = await setup()
+    const streamReq = streamRequest(
+      context.token,
+      context.libraryId,
+      'stream-unknown',
+      'audio',
+      chunkedStream(new Uint8Array([1, 2, 3])),
+      'audio/mpeg',
+    )
+    expect(streamReq.headers.has('content-length')).toBe(false)
+
+    const response = await context.harness.app.request(
+      streamReq,
+      undefined,
+      context.harness.env,
+    )
+    await expectError(response, 400, 'BAD_REQUEST')
+    expect(context.harness.bucket.objects.size).toBe(0)
+    expect(context.harness.store.files.size).toBe(0)
+  })
+
+  it('Content-Length: 0 → 400 и объекта нет', async () => {
+    const context = await setup()
+    const response = await context.harness.app.request(
+      streamRequest(
+        context.token,
+        context.libraryId,
+        'stream-empty',
+        'audio',
+        chunkedStream(),
+        'audio/wav',
+        undefined,
+        0,
+      ),
+      undefined,
+      context.harness.env,
+    )
+    await expectError(response, 400, 'BAD_REQUEST')
+    expect(context.harness.bucket.objects.size).toBe(0)
+    expect(context.harness.store.files.size).toBe(0)
+  })
+
+  it('обрыв потока → 500 INTERNAL, объекта и строки нет', async () => {
+    const context = await setup()
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error('connection reset'))
+      },
+    })
+
+    const response = await context.harness.app.request(
+      streamRequest(
+        context.token,
+        context.libraryId,
+        'stream-aborted',
+        'audio',
+        body,
+        'audio/mpeg',
+        undefined,
+        1024,
+      ),
+      undefined,
+      context.harness.env,
+    )
+    await expectError(response, 500, 'INTERNAL')
+    expect(context.harness.bucket.objects.size).toBe(0)
+    expect(context.harness.store.files.size).toBe(0)
+  })
+
+  it('если R2 сообщил размер больше лимита, существующий файл не удаляется', async () => {
+    // Подменяем бакет: вторая запись «рапортует» размер больше лимита обложки.
+    // Так проверяется страховочная ветка по object.size без буферизации 10 МиБ.
+    const harness = createHarness({ bucket: new OversizeOnSecondPutBucket() })
+    const login = await readJson<LoginBody>(await loginRequest(harness))
+    const libraryId = login.libraries[0]?.id
+    if (!libraryId) throw new Error('Личная библиотека не создана')
+
+    const key = `libraries/${libraryId}/files/cover-keep`
+    const first = await uploadFile(
+      harness,
+      login.token,
+      libraryId,
+      'cover-keep',
+      'cover',
+      COVER_BYTES,
+      'image/png',
+    )
+    expect(first.status).toBe(200)
+
+    const second = await uploadFile(
+      harness,
+      login.token,
+      libraryId,
+      'cover-keep',
+      'cover',
+      new Uint8Array(16),
+      'image/png',
+    )
+    await expectError(second, 413, 'PAYLOAD_TOO_LARGE')
+    // Старый объект и строка D1 остались нетронутыми.
+    expect(harness.bucket.objects.has(key)).toBe(true)
+    expect(harness.store.files.get('cover-keep')?.size).toBe(COVER_BYTES.byteLength)
   })
 })
 

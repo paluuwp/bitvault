@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { AccountDialog } from '@/components/auth'
 import { AppShell } from '@/components/layout/AppShell'
 import type { AppSection } from '@/components/layout/navigation'
 import { LibraryPage } from '@/pages/LibraryPage'
@@ -10,6 +11,7 @@ import { ConfirmDialog } from '@/components/ui'
 import { DropZone, UploadOverlay } from '@/components/upload'
 import { UPLOAD_ACCEPT, isImageUpload } from '@/components/upload/fileKinds'
 import { PlayerProvider, usePlayerControls, usePlayerTrack } from '@/context/PlayerContext'
+import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ToastProvider, useToast } from '@/context/ToastContext'
 import { useLibraryFilters, buildTagStats } from '@/hooks/useLibraryFilters'
 import { useLibraryTransfer } from '@/hooks/useLibraryTransfer'
@@ -54,6 +56,7 @@ function describeLibraryError(error: AppError | null): string | null {
 }
 
 function AppContent({ library }: { library: UseTracksResult }) {
+  const { status: authStatus, session: authSession } = useAuth()
   const { toast } = useToast()
   const upload = useUpload(library.refresh)
   const storage = useStorageInfo()
@@ -67,6 +70,7 @@ function AppContent({ library }: { library: UseTracksResult }) {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const wasUploadingRef = useRef(false)
 
@@ -85,6 +89,14 @@ function AppContent({ library }: { library: UseTracksResult }) {
   const favoritesCount = useMemo(
     () => library.tracks.filter((track) => track.isFavorite).length,
     [library.tracks],
+  )
+  const account = useMemo(
+    () => ({
+      status: authStatus,
+      label: authSession?.user.name || authSession?.user.email || 'Гость',
+      email: authSession?.user.email ?? null,
+    }),
+    [authStatus, authSession],
   )
 
   const selectedTrack = useMemo(
@@ -320,6 +332,8 @@ function AppContent({ library }: { library: UseTracksResult }) {
         favoritesCount={favoritesCount}
         storageInfo={storage.info}
         storageLoading={storage.loading}
+        account={account}
+        onOpenAccount={() => setAccountOpen(true)}
         query={filters.query}
         onQueryChange={filters.setQuery}
         sort={filters.sortField}
@@ -429,6 +443,8 @@ function AppContent({ library }: { library: UseTracksResult }) {
         onBeforeReplace={stop}
         onImported={handleLibraryImported}
       />
+
+      <AccountDialog open={accountOpen} onClose={() => setAccountOpen(false)} />
     </>
   )
 }
@@ -446,7 +462,9 @@ function LibraryApp() {
 export default function App() {
   return (
     <ToastProvider>
-      <LibraryApp />
+      <AuthProvider>
+        <LibraryApp />
+      </AuthProvider>
     </ToastProvider>
   )
 }

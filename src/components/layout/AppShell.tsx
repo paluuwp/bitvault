@@ -4,7 +4,8 @@ import { UpdateBanner } from '@/components/pwa/UpdateBanner'
 import type { LibraryView, SortDirection, SortField, StorageInfo } from '@/types/models'
 import type { AppSection } from './navigation'
 import { PlayerBar } from './PlayerBar'
-import { Sidebar, type SidebarTag } from './Sidebar'
+import { Sidebar } from './Sidebar'
+import type { SidebarAccount, SidebarTag } from './Sidebar'
 import { TopBar } from './TopBar'
 
 export interface AppShellProps {
@@ -18,6 +19,9 @@ export interface AppShellProps {
   favoritesCount?: number
   storageInfo?: StorageInfo | null
   storageLoading?: boolean
+  /** Сведения об аккаунте для блока в сайдбаре. */
+  account?: SidebarAccount
+  onOpenAccount?: () => void
   query: string
   onQueryChange: (value: string) => void
   sort: SortField
@@ -42,6 +46,8 @@ export function AppShell({
   favoritesCount,
   storageInfo,
   storageLoading,
+  account,
+  onOpenAccount,
   query,
   onQueryChange,
   sort,
@@ -154,6 +160,8 @@ export function AppShell({
             favoritesCount={favoritesCount}
             storageInfo={storageInfo}
             storageLoading={storageLoading}
+            account={account}
+            onOpenAccount={onOpenAccount}
           />
         </aside>
 
@@ -217,6 +225,15 @@ export function AppShell({
               favoritesCount={favoritesCount}
               storageInfo={storageInfo}
               storageLoading={storageLoading}
+              account={account}
+              onOpenAccount={
+                onOpenAccount
+                  ? () => {
+                      onOpenAccount()
+                      closeSidebar()
+                    }
+                  : undefined
+              }
               onClose={closeSidebar}
             />
           </div>

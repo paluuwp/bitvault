@@ -1,0 +1,13 @@
+# Скопируйте этот файл в worker/.dev.vars (он не коммитится) и заполните значения.
+# В репозиторий попадают только плейсхолдеры, реальные значения — нет.
+
+# Публичный Google OAuth Client ID (не секрет), используется как audience ID-токена.
+GOOGLE_CLIENT_ID=000000000000-your-client-id.apps.googleusercontent.com
+
+# Белый список e-mail через запятую, регистр не важен.
+# Пустой список запрещает вход всем (fail closed).
+ALLOWED_EMAILS=owner@example.com
+
+# Секрет HMAC для медиа-токенов. Пока не используется, но должен быть задан
+# до реализации /media/*. 32 случайных байта в base64url.
+MEDIA_TOKEN_SECRET=replace-me-with-random-base64url-32-bytes

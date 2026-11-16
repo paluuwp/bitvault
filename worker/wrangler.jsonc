@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bitvault-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-16",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "PUBLIC_ORIGINS": "https://paluuwp.github.io,http://localhost:5173",
+    // Публичный OAuth Client ID (Web application); не секрет.
+    "GOOGLE_CLIENT_ID": "634934544232-e3fg2l93h7gmpmnvcbkngktj1a4u36pj.apps.googleusercontent.com"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bitvault-prod",
+      // ID реальной D1 bitvault-prod в аккаунте владельца (не секрет).
+      "database_id": "63315689-dad8-4fca-9fff-c5a29137e7d1",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "bitvault-prod"
+    }
+  ],
+  "dev": {
+    "port": 8787
+  }
+}

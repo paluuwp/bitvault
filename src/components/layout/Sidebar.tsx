@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { Heart, Library, Settings, X } from 'lucide-react'
+import { Heart, Library, LogIn, Settings, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button, IconButton, ProgressBar } from '@/components/ui'
 import { formatBytes } from '@/lib/format'
@@ -9,6 +9,14 @@ import type { AppSection } from './navigation'
 export interface SidebarTag {
   name: string
   count: number
+}
+
+/** Краткие сведения об аккаунте для блока в нижней части сайдбара. */
+export interface SidebarAccount {
+  status: 'anonymous' | 'authenticated'
+  /** Имя пользователя, а при его отсутствии — e-mail. */
+  label: string
+  email?: string | null
 }
 
 export interface SidebarProps {
@@ -22,6 +30,9 @@ export interface SidebarProps {
   favoritesCount?: number
   storageInfo?: StorageInfo | null
   storageLoading?: boolean
+  /** Блок аккаунта над «Настройками»; без него блок не рендерится. */
+  account?: SidebarAccount
+  onOpenAccount?: () => void
   className?: string
 }
 
@@ -29,6 +40,22 @@ const navItems: { id: AppSection; label: string; icon: ReactNode }[] = [
   { id: 'library', label: 'Библиотека', icon: <Library className="h-5 w-5" aria-hidden="true" /> },
   { id: 'favorites', label: 'Избранное', icon: <Heart className="h-5 w-5" aria-hidden="true" /> },
 ]
+
+/** Инициалы для локального аватара в блоке аккаунта. */
+function accountInitials(label: string): string {
+  const trimmed = label.trim()
+  if (!trimmed) return '?'
+
+  const words = trimmed.split(/\s+/).filter((word) => word.length > 0)
+  if (words.length >= 2) {
+    const first = Array.from(words[0])[0] ?? ''
+    const second = Array.from(words[1])[0] ?? ''
+    return `${first}${second}`.toUpperCase()
+  }
+
+  const first = Array.from(trimmed)[0]
+  return first ? first.toUpperCase() : '?'
+}
 
 export function Sidebar({
   activeSection,
@@ -41,6 +68,8 @@ export function Sidebar({
   favoritesCount = 0,
   storageInfo = null,
   storageLoading = false,
+  account,
+  onOpenAccount,
   className,
 }: SidebarProps) {
   const usage = storageInfo?.usage ?? null
@@ -137,6 +166,42 @@ export function Sidebar({
       </nav>
 
       <div className="shrink-0 space-y-3 border-t border-border p-4">
+        {account && onOpenAccount ? (
+          account.status === 'authenticated' ? (
+            <button
+              type="button"
+              onClick={onOpenAccount}
+              className="flex min-h-11 w-full items-center gap-2 rounded-control border border-border bg-surface-raised px-3 py-2 text-left transition-colors hover:bg-surface-hover"
+            >
+              <span
+                aria-hidden="true"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface text-caption font-medium text-text-muted"
+              >
+                {accountInitials(account.label)}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <span aria-hidden="true" className="fl-led shrink-0 text-accent" />
+                  <span className="min-w-0 truncate text-body text-text">{account.label}</span>
+                </span>
+                {account.email && account.email !== account.label ? (
+                  <span className="block truncate text-caption text-text-muted">
+                    {account.email}
+                  </span>
+                ) : null}
+              </span>
+            </button>
+          ) : (
+            <Button
+              variant="secondary"
+              fullWidth
+              leftIcon={<LogIn className="h-4 w-4" aria-hidden="true" />}
+              onClick={onOpenAccount}
+            >
+              Войти
+            </Button>
+          )
+        ) : null}
         <div className="fl-inset space-y-1.5 rounded-control p-3">
           <button
             type="button"

@@ -1,0 +1,29 @@
+{
+  "name": "bitvault-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "BitVault Cloudflare Worker API (health, Google auth, sessions)",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate:local": "wrangler d1 migrations apply bitvault-prod --local --persist-to .wrangler/state",
+    "db:migrate:remote": "wrangler d1 migrations apply bitvault-prod --remote"
+  },
+  "dependencies": {
+    "hono": "^4.13.0",
+    "jose": "^6.2.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261113.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.162.0"
+  }
+}

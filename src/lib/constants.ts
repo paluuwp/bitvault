@@ -111,6 +111,7 @@ export const STORAGE_KEYS = {
   view: 'bv.view',
   sort: 'bv.sort',
   volume: 'bv.volume',
+  authSession: 'bv.auth.session',
 } as const
 
 export const DB_NAME = 'bitvault'

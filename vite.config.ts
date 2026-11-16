@@ -83,6 +83,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   test: {
+    // Корневой прогон проверяет только фронтенд: у worker/ свои тесты и конфиг.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     css: false,

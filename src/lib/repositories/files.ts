@@ -1,4 +1,5 @@
 import type { FileKind, StoredFile, Track } from '@/types/models'
+import { downloadCloudFile, getCloudContext, resolveCloudFile } from '../cloud'
 import { runWriteTransaction, withDatabase } from '../db'
 import { AppError } from '../errors'
 import { createId } from '../id'
@@ -29,8 +30,56 @@ export async function saveFile(
   return file
 }
 
-export async function getFile(id: string): Promise<StoredFile | null> {
+/** Файл из локального кэша, без обращения к серверу. */
+export async function getStoredFile(id: string): Promise<StoredFile | null> {
   return withDatabase(async (database) => (await database.get('files', id)) ?? null)
+}
+
+/**
+ * Файл из локального кэша; в авторизованном состоянии недостающий файл
+ * скачивается из аккаунта и кэшируется.
+ */
+export async function getFile(id: string): Promise<StoredFile | null> {
+  const local = await getStoredFile(id)
+  if (local) return local
+
+  const context = getCloudContext()
+  if (!context) return null
+  return downloadCloudFile(context, id)
+}
+
+export interface FileInfo {
+  id: string
+  kind: FileKind
+  name: string
+  mimeType: string
+  size: number
+}
+
+/**
+ * Метаданные файла без скачивания содержимого.
+ * Для облачного файла достаточно подписанной ссылки — сам файл не качается.
+ */
+export async function getFileInfo(id: string): Promise<FileInfo | null> {
+  const local = await getStoredFile(id)
+  if (local) {
+    return {
+      id: local.id,
+      kind: local.kind,
+      name: local.originalName,
+      mimeType: local.mimeType,
+      size: local.size,
+    }
+  }
+
+  const context = getCloudContext()
+  if (!context) return null
+  try {
+    const { file } = await resolveCloudFile(context, id)
+    return { id, kind: file.kind, name: file.name, mimeType: file.mimeType, size: file.size }
+  } catch {
+    return null
+  }
 }
 
 export async function deleteFile(id: string): Promise<void> {

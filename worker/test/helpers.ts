@@ -2,11 +2,16 @@ import { createApp } from '../src/index'
 import type { Env } from '../src/env'
 import type {
   CreateSessionInput,
+  FileRecord,
   LibraryRecord,
   LibraryWithRole,
   SessionRecord,
   Store,
   TouchSessionInput,
+  TrackRecord,
+  TrackWithFiles,
+  UpsertFileInput,
+  UpsertTrackInput,
   UpsertUserInput,
   UserRecord,
 } from '../src/db/store'
@@ -20,6 +25,120 @@ interface Membership {
   createdAt: string
 }
 
+export interface StoredObject {
+  bytes: Uint8Array
+  contentType: string | null
+  etag: string
+}
+
+interface MemoryGetOptions {
+  range?: { offset?: number; length?: number; suffix?: number } | Headers
+}
+
+interface MemoryPutOptions {
+  httpMetadata?: { contentType?: string }
+}
+
+async function toBytes(value: unknown): Promise<Uint8Array> {
+  if (value === null || value === undefined) return new Uint8Array()
+  if (typeof value === 'string') return new TextEncoder().encode(value)
+  if (value instanceof Uint8Array) return new Uint8Array(value)
+  if (value instanceof ArrayBuffer) return new Uint8Array(value.slice(0))
+  if (ArrayBuffer.isView(value)) {
+    const view = value as ArrayBufferView
+    return new Uint8Array(view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength))
+  }
+  if (value instanceof Blob) return new Uint8Array(await value.arrayBuffer())
+  if (value instanceof ReadableStream) {
+    return new Uint8Array(await new Response(value).arrayBuffer())
+  }
+  throw new Error('MemoryBucket: неподдерживаемый тип значения.')
+}
+
+class MemoryObject {
+  readonly key: string
+  readonly size: number
+  readonly etag: string
+  readonly httpEtag: string
+  readonly httpMetadata: { contentType: string } | undefined
+  readonly range: { offset: number; length: number }
+  readonly body: ReadableStream<Uint8Array>
+
+  constructor(
+    key: string,
+    private readonly bytes: Uint8Array,
+    stored: StoredObject,
+    offset: number,
+  ) {
+    this.key = key
+    this.size = bytes.byteLength
+    this.etag = stored.etag
+    this.httpEtag = `"${stored.etag}"`
+    this.httpMetadata = stored.contentType ? { contentType: stored.contentType } : undefined
+    this.range = { offset, length: bytes.byteLength }
+    this.body = new ReadableStream<Uint8Array>({
+      start: (controller) => {
+        controller.enqueue(bytes)
+        controller.close()
+      },
+    })
+  }
+
+  async arrayBuffer(): Promise<ArrayBuffer> {
+    return this.bytes.slice().buffer
+  }
+}
+
+/** Минимальный фейковый R2: put/get/delete с поддержкой одиночного Range. */
+export class MemoryBucket {
+  readonly objects = new Map<string, StoredObject>()
+  private seq = 0
+
+  async put(
+    key: string,
+    value: unknown,
+    options?: MemoryPutOptions,
+  ): Promise<{ key: string; size: number; etag: string }> {
+    const bytes = await toBytes(value)
+    this.seq += 1
+    const etag = `etag-${this.seq}`
+    this.objects.set(key, {
+      bytes,
+      contentType: options?.httpMetadata?.contentType ?? null,
+      etag,
+    })
+    return { key, size: bytes.byteLength, etag }
+  }
+
+  async get(key: string, options?: MemoryGetOptions): Promise<MemoryObject | null> {
+    const stored = this.objects.get(key)
+    if (!stored) return null
+
+    const total = stored.bytes.byteLength
+    let start = 0
+    let end = total - 1
+    const range = options?.range
+
+    if (range && typeof range === 'object' && !(range instanceof Headers)) {
+      if (range.suffix !== undefined) {
+        start = Math.max(total - range.suffix, 0)
+      } else {
+        start = Math.min(range.offset ?? 0, total)
+        if (range.length !== undefined) {
+          end = Math.min(start + range.length - 1, total - 1)
+        }
+      }
+    }
+
+    const slice = stored.bytes.slice(start, end + 1)
+    return new MemoryObject(key, slice, stored, start)
+  }
+
+  async delete(key: string): Promise<void> {
+    this.objects.delete(key)
+  }
+}
+
 /** In-memory Store с той же семантикой, что D1Store, для тестов без сети. */
 export class MemoryStore implements Store {
   readonly users = new Map<string, UserRecord>()
@@ -27,6 +146,9 @@ export class MemoryStore implements Store {
   readonly libraries = new Map<string, LibraryRecord>()
   readonly memberships: Membership[] = []
   readonly rateLimits = new Map<string, { windowStart: number; count: number }>()
+  readonly tracks = new Map<string, TrackRecord>()
+  readonly files = new Map<string, FileRecord>()
+  readonly attachments = new Map<string, string[]>()
   private userSeq = 0
 
   async findUserByGoogleSub(googleSub: string): Promise<UserRecord | null> {
@@ -104,6 +226,104 @@ export class MemoryStore implements Store {
       return a.createdAt < b.createdAt ? -1 : 1
     })
     return result
+  }
+
+  async findLibraryForUser(libraryId: string, userId: string): Promise<LibraryWithRole | null> {
+    const membership = this.memberships.find(
+      (entry) => entry.libraryId === libraryId && entry.userId === userId,
+    )
+    const library = this.libraries.get(libraryId)
+    if (!membership || !library) return null
+    return { ...library, role: membership.role }
+  }
+
+  async listTracksForLibrary(libraryId: string): Promise<TrackWithFiles[]> {
+    const result: TrackWithFiles[] = []
+    for (const track of this.tracks.values()) {
+      if (track.libraryId !== libraryId || track.deletedAt !== null) continue
+
+      const audio = track.audioFileId ? this.files.get(track.audioFileId) : undefined
+      const cover = track.coverFileId ? this.files.get(track.coverFileId) : undefined
+      const attachmentIds = this.attachments.get(track.id) ?? []
+      const attachments: FileRecord[] = []
+      for (const fileId of attachmentIds) {
+        const file = this.files.get(fileId)
+        if (file && file.deletedAt === null) attachments.push({ ...file })
+      }
+
+      result.push({
+        ...track,
+        tags: [...track.tags],
+        audioFile: audio && audio.deletedAt === null ? { ...audio } : null,
+        coverFile: cover && cover.deletedAt === null ? { ...cover } : null,
+        attachments,
+      })
+    }
+
+    result.sort((a, b) => {
+      if (a.createdAt === b.createdAt) return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+      return a.createdAt > b.createdAt ? -1 : 1
+    })
+    return result
+  }
+
+  async upsertTrack(input: UpsertTrackInput): Promise<TrackRecord | null> {
+    const existing = this.tracks.get(input.id)
+    if (existing && existing.libraryId !== input.libraryId) return null
+
+    const record: TrackRecord = {
+      id: input.id,
+      libraryId: input.libraryId,
+      name: input.name,
+      bpm: input.bpm,
+      musicalKey: input.musicalKey,
+      genre: input.genre,
+      tags: [...input.tags],
+      notes: input.notes,
+      color: input.color,
+      isFavorite: input.isFavorite,
+      durationSec: input.durationSec,
+      createdAt: input.createdAt,
+      updatedAt: input.updatedAt,
+      lastPlayedAt: existing?.lastPlayedAt ?? null,
+      playCount: existing?.playCount ?? 0,
+      audioFileId: input.audioFileId,
+      coverFileId: input.coverFileId,
+      deletedAt: null,
+    }
+    this.tracks.set(record.id, record)
+    this.attachments.set(record.id, [...input.attachmentFileIds])
+    return { ...record, tags: [...record.tags] }
+  }
+
+  async softDeleteTrack(libraryId: string, trackId: string, now: string): Promise<void> {
+    const track = this.tracks.get(trackId)
+    if (!track || track.libraryId !== libraryId) return
+    track.deletedAt = now
+  }
+
+  async upsertFile(input: UpsertFileInput): Promise<FileRecord | null> {
+    const existing = this.files.get(input.id)
+    if (existing && existing.libraryId !== input.libraryId) return null
+
+    const record: FileRecord = {
+      id: input.id,
+      libraryId: input.libraryId,
+      kind: input.kind,
+      r2Key: input.r2Key,
+      mimeType: input.mimeType,
+      size: input.size,
+      originalName: input.originalName,
+      createdAt: input.now,
+      deletedAt: null,
+    }
+    this.files.set(record.id, record)
+    return { ...record }
+  }
+
+  async findFileById(fileId: string): Promise<FileRecord | null> {
+    const file = this.files.get(fileId)
+    return file ? { ...file } : null
   }
 
   async createSession(input: CreateSessionInput): Promise<SessionRecord> {
@@ -216,11 +436,13 @@ export interface HarnessOptions {
   env?: Partial<Env>
   startIso?: string
   store?: MemoryStore
+  bucket?: MemoryBucket
 }
 
 export interface Harness {
   app: ReturnType<typeof createApp>
   store: MemoryStore
+  bucket: MemoryBucket
   env: Env
   nowIso: () => string
   advanceMs: (ms: number) => void
@@ -229,8 +451,9 @@ export interface Harness {
 
 export function createHarness(options: HarnessOptions = {}): Harness {
   const store = options.store ?? new MemoryStore()
+  const bucket = options.bucket ?? new MemoryBucket()
   const identity = options.identity ?? DEFAULT_IDENTITY
-  const env = createTestEnv(options.env)
+  const env = createTestEnv({ BUCKET: bucket as unknown as R2Bucket, ...options.env })
   let nowMs = Date.parse(options.startIso ?? '2026-11-16T10:00:00.000Z')
   const now = () => new Date(nowMs)
 
@@ -243,6 +466,7 @@ export function createHarness(options: HarnessOptions = {}): Harness {
   return {
     app,
     store,
+    bucket,
     env,
     nowIso: () => new Date(nowMs).toISOString(),
     advanceMs: (ms: number) => {

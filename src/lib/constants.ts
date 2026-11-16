@@ -13,6 +13,8 @@ export const LIMITS = {
   audioFileMaxBytes: 250 * 1024 * 1024,
   coverFileMaxBytes: 10 * 1024 * 1024,
   attachmentFileMaxBytes: 250 * 1024 * 1024,
+  /** Предел тела запроса Worker: больше в библиотеку аккаунта не загрузить. */
+  cloudFileMaxBytes: 90 * 1024 * 1024,
   attachmentsMax: 50,
   dropFilesMax: 50,
   importFilesMax: 5000,

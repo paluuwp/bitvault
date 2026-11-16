@@ -42,7 +42,7 @@ function accountInitials(name: string | null, email: string): string {
 }
 
 const ANONYMOUS_DESCRIPTION =
-  'Вход нужен для будущей синхронизации. Библиотека хранится в этом браузере и работает без входа.'
+  'Вход открывает библиотеку аккаунта: треки, загруженные в аккаунт, доступны на всех устройствах. Без входа библиотека хранится только в этом браузере.'
 
 /**
  * Диалог аккаунта: вход через Google и сведения о текущей сессии.
@@ -241,7 +241,8 @@ export function AccountDialog({ open, onClose }: AccountDialogProps) {
                 </section>
 
                 <p className="text-caption text-text-muted">
-                  Синхронизация ещё не включена: биты хранятся только в этом браузере.
+                  Треки аккаунта хранятся на сервере и доступны после входа на любом
+                  устройстве.
                 </p>
 
                 <div className="flex flex-wrap gap-2">

@@ -10,7 +10,7 @@ export interface Env {
   GOOGLE_CLIENT_ID?: string
   /** Белый список e-mail через запятую. Пустой список запрещает вход всем. */
   ALLOWED_EMAILS?: string
-  /** Секрет HMAC для медиа-токенов (зарезервирован, пока не используется). */
+  /** Секрет HMAC для подписанных ссылок на медиа; без него `/media/*` → 503. */
   MEDIA_TOKEN_SECRET?: string
 }
 

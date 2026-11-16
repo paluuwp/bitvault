@@ -104,7 +104,22 @@ function createApiHarness() {
   const me = vi.fn<RemoteApi['me']>()
   const logout = vi.fn<RemoteApi['logout']>(async () => undefined)
   const logoutAll = vi.fn<RemoteApi['logoutAll']>(async () => undefined)
-  const api: RemoteApi = { loginWithGoogle, me, logout, logoutAll }
+  const listTracks = vi.fn<RemoteApi['listTracks']>()
+  const putTrack = vi.fn<RemoteApi['putTrack']>()
+  const deleteTrack = vi.fn<RemoteApi['deleteTrack']>(async () => undefined)
+  const uploadFile = vi.fn<RemoteApi['uploadFile']>()
+  const fileUrl = vi.fn<RemoteApi['fileUrl']>()
+  const api: RemoteApi = {
+    loginWithGoogle,
+    me,
+    logout,
+    logoutAll,
+    listTracks,
+    putTrack,
+    deleteTrack,
+    uploadFile,
+    fileUrl,
+  }
   return { api, loginWithGoogle, me, logout, logoutAll }
 }
 

@@ -1,10 +1,11 @@
 import type { Track, TrackColor } from '@/types/models'
 import { DEFAULT_TRACK_COLOR, LIMITS, TRACK_COLORS } from './constants'
+import { pushTrackToCloud, getCloudContext } from './cloud'
 import { AppError } from './errors'
 import { getAudioDuration, isAudioFile } from './audio'
 import { isSupportedImageFile, validateAttachmentFile, validateAudioFile } from './validation'
 import { deleteFile, saveFile } from './repositories/files'
-import { createTrack } from './repositories/tracks'
+import { deleteTrack, createTrack } from './repositories/tracks'
 
 /** Детерминированный цвет по имени: одинаковые имена всегда получают один цвет. */
 export function colorFromName(name: string): TrackColor {
@@ -25,6 +26,35 @@ export function trackNameFromFileName(fileName: string): string {
 }
 
 /**
+ * Сервер аккаунта принимает файлы не больше лимита тела запроса Worker.
+ * Проверяем до сохранения, иначе загрузка упадёт с 413 и трек откатится.
+ */
+function assertCloudUploadSize(size: number, name: string): void {
+  if (!getCloudContext() || size <= LIMITS.cloudFileMaxBytes) return
+  const limitMb = Math.floor(LIMITS.cloudFileMaxBytes / (1024 * 1024))
+  throw new AppError(
+    'VALIDATION',
+    `«${name}» больше ${limitMb} МБ — сервер аккаунта не принимает такие файлы. Выйдите из аккаунта, чтобы хранить его только на этом устройстве.`,
+  )
+}
+
+/**
+ * В авторизованном состоянии новый трек сразу уходит в библиотеку аккаунта.
+ * Если загрузка не удалась, локальная копия откатывается, чтобы список
+ * не расходился с сервером.
+ */
+async function publishTrack(track: Track): Promise<Track> {
+  const context = getCloudContext()
+  if (!context) return track
+  try {
+    return await pushTrackToCloud(context, track)
+  } catch (error) {
+    await deleteTrack(track.id).catch(() => undefined)
+    throw error
+  }
+}
+
+/**
  * Создаёт трек из перетащенного файла: аудио — с длительностью, прочие файлы —
  * как вложение. Обложки не создают трек (их привязывает интерфейс).
  */
@@ -35,10 +65,11 @@ export async function createTrackFromFile(file: File): Promise<Track> {
 
   if (isAudioFile(file)) {
     validateAudioFile(file)
+    assertCloudUploadSize(file.size, originalName)
     const saved = await saveFile('audio', file, originalName, file.type)
     try {
       const durationSec = await getAudioDuration(file)
-      return await createTrack({ name, color, audioFileId: saved.id, durationSec })
+      return await publishTrack(await createTrack({ name, color, audioFileId: saved.id, durationSec }))
     } catch (error) {
       await deleteFile(saved.id).catch(() => undefined)
       throw error
@@ -53,9 +84,10 @@ export async function createTrackFromFile(file: File): Promise<Track> {
   }
 
   validateAttachmentFile(file)
+  assertCloudUploadSize(file.size, originalName)
   const saved = await saveFile('attachment', file, originalName, file.type)
   try {
-    return await createTrack({ name, color, attachmentFileIds: [saved.id] })
+    return await publishTrack(await createTrack({ name, color, attachmentFileIds: [saved.id] }))
   } catch (error) {
     await deleteFile(saved.id).catch(() => undefined)
     throw error

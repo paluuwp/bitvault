@@ -2,7 +2,7 @@ import { Download, FileArchive, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { IconButton, Spinner } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
-import { getFile, getFileUrl, toAppError } from '@/lib'
+import { getFileInfo, getFileUrl, getStoredFile, toAppError, AppError } from '@/lib'
 
 interface AttachmentItem {
   id: string
@@ -34,9 +34,9 @@ export function AttachmentList({ fileIds, disabled = false, onRemove }: Attachme
     Promise.all(
       fileIds.map(async (id): Promise<AttachmentItem> => {
         try {
-          const file = await getFile(id)
+          const file = await getFileInfo(id)
           return file
-            ? { id, name: file.originalName, missing: false }
+            ? { id, name: file.name, missing: false }
             : { id, name: 'Файл недоступен', missing: true }
         } catch (caught) {
           console.error('Не удалось прочитать вложение', caught)
@@ -57,15 +57,30 @@ export function AttachmentList({ fileIds, disabled = false, onRemove }: Attachme
   const handleDownload = async (item: AttachmentItem) => {
     if (item.missing) return
     try {
-      const handle = await getFileUrl(item.id)
+      // Локальный файл отдаём напрямую, облачный сначала скачиваем: атрибут
+      // download не работает для чужих origin, и подписанная ссылка открылась
+      // бы в новой вкладке вместо сохранения.
+      const local = await getStoredFile(item.id)
+      let blob: Blob
+      if (local) {
+        blob = local.blob
+      } else {
+        const handle = await getFileUrl(item.id)
+        const response = await fetch(handle.url)
+        if (!response.ok) throw new AppError('NOT_FOUND', 'Не удалось скачать вложение.')
+        blob = await response.blob()
+        handle.revoke()
+      }
+
+      const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
-      link.href = handle.url
+      link.href = url
       link.download = item.name
       link.rel = 'noopener'
       document.body.appendChild(link)
       link.click()
       link.remove()
-      window.setTimeout(handle.revoke, 1000)
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch (caught) {
       console.error('Не удалось скачать вложение', caught)
       toast({

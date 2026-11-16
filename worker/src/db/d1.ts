@@ -1,12 +1,17 @@
 import { createId } from '../lib/ids'
-import { DEFAULT_LIBRARY_NAME } from './store'
+import { DEFAULT_LIBRARY_NAME, DEFAULT_TRACK_COLOR } from './store'
 import type {
   CreateSessionInput,
+  FileRecord,
   LibraryRecord,
   LibraryWithRole,
   SessionRecord,
   Store,
   TouchSessionInput,
+  TrackRecord,
+  TrackWithFiles,
+  UpsertFileInput,
+  UpsertTrackInput,
   UpsertUserInput,
   UserRecord,
 } from './store'
@@ -44,6 +49,46 @@ interface SessionRow {
   user_agent: string | null
 }
 
+interface FileRow {
+  id: string
+  library_id: string
+  kind: string
+  r2_key: string
+  mime_type: string | null
+  size: number | null
+  original_name: string | null
+  created_at: string | null
+  deleted_at: string | null
+}
+
+interface TrackRow {
+  id: string
+  library_id: string
+  name: string | null
+  bpm: number | null
+  musical_key: string | null
+  genre: string | null
+  tags_json: string | null
+  notes: string | null
+  color: string | null
+  is_favorite: number | null
+  duration_sec: number | null
+  play_count: number | null
+  last_played_at: string | null
+  created_at: string | null
+  updated_at: string | null
+  audio_file_id: string | null
+  cover_file_id: string | null
+  deleted_at: string | null
+}
+
+/** Строка второй выборки: файл в контексте трека (аудио, обложка или вложение). */
+interface TrackFileRow extends FileRow {
+  track_id: string
+  position: number | null
+  usage: string
+}
+
 function toUser(row: UserRow): UserRecord {
   return {
     id: row.id,
@@ -79,9 +124,66 @@ function toSession(row: SessionRow): SessionRecord {
   }
 }
 
+function parseTags(raw: string | null): string[] {
+  if (!raw) return []
+  try {
+    const value: unknown = JSON.parse(raw)
+    if (!Array.isArray(value)) return []
+    return value.filter((item): item is string => typeof item === 'string')
+  } catch {
+    return []
+  }
+}
+
+function toTrack(row: TrackRow): TrackRecord {
+  return {
+    id: row.id,
+    libraryId: row.library_id,
+    name: row.name ?? '',
+    bpm: row.bpm,
+    musicalKey: row.musical_key,
+    genre: row.genre,
+    tags: parseTags(row.tags_json),
+    notes: row.notes ?? '',
+    color: row.color ?? DEFAULT_TRACK_COLOR,
+    isFavorite: (row.is_favorite ?? 0) !== 0,
+    durationSec: row.duration_sec,
+    createdAt: row.created_at ?? '',
+    updatedAt: row.updated_at ?? '',
+    lastPlayedAt: row.last_played_at,
+    playCount: row.play_count ?? 0,
+    audioFileId: row.audio_file_id,
+    coverFileId: row.cover_file_id,
+    deletedAt: row.deleted_at,
+  }
+}
+
+function toFile(row: FileRow): FileRecord {
+  return {
+    id: row.id,
+    libraryId: row.library_id,
+    kind: row.kind,
+    r2Key: row.r2_key,
+    mimeType: row.mime_type,
+    size: row.size,
+    originalName: row.original_name,
+    createdAt: row.created_at,
+    deletedAt: row.deleted_at,
+  }
+}
+
 const USER_COLUMNS = 'id, google_sub, email, name, picture, created_at, last_seen_at'
 const LIBRARY_COLUMNS = 'id, owner_user_id, name, created_at, updated_at, version'
 const SESSION_COLUMNS = 'id, user_id, token_hash, created_at, expires_at, last_used_at, user_agent'
+const FILE_COLUMNS =
+  'id, library_id, kind, r2_key, mime_type, size, original_name, created_at, deleted_at'
+const TRACK_COLUMNS =
+  'id, library_id, name, bpm, musical_key, genre, tags_json, notes, color, is_favorite, ' +
+  'duration_sec, play_count, last_played_at, created_at, updated_at, audio_file_id, ' +
+  'cover_file_id, deleted_at'
+const TRACK_FILE_COLUMNS =
+  'f.id, f.library_id, f.kind, f.r2_key, f.mime_type, f.size, f.original_name, ' +
+  'f.created_at, f.deleted_at'
 
 /** Store поверх D1: только prepared statements, без склейки SQL строками. */
 export class D1Store implements Store {
@@ -173,6 +275,201 @@ export class D1Store implements Store {
       .bind(userId)
       .all<LibraryWithRoleRow>()
     return result.results.map((row) => ({ ...toLibrary(row), role: row.role }))
+  }
+
+  async findLibraryForUser(libraryId: string, userId: string): Promise<LibraryWithRole | null> {
+    const row = await this.db
+      .prepare(
+        `SELECT l.id, l.owner_user_id, l.name, l.created_at, l.updated_at, l.version, m.role
+         FROM library_members m
+         JOIN libraries l ON l.id = m.library_id
+         WHERE m.library_id = ? AND m.user_id = ?`,
+      )
+      .bind(libraryId, userId)
+      .first<LibraryWithRoleRow>()
+    return row ? { ...toLibrary(row), role: row.role } : null
+  }
+
+  async listTracksForLibrary(libraryId: string): Promise<TrackWithFiles[]> {
+    const trackResult = await this.db
+      .prepare(
+        `SELECT ${TRACK_COLUMNS} FROM tracks
+         WHERE library_id = ? AND deleted_at IS NULL
+         ORDER BY created_at DESC, id ASC`,
+      )
+      .bind(libraryId)
+      .all<TrackRow>()
+
+    // Второй запрос: все файлы треков библиотеки (аудио, обложка, вложения)
+    // одним UNION ALL — без N+1 по трекам.
+    const fileResult = await this.db
+      .prepare(
+        `SELECT t.id AS track_id, 0 AS position, 'audio' AS usage, ${TRACK_FILE_COLUMNS}
+         FROM tracks t
+         JOIN files f ON f.id = t.audio_file_id
+           AND f.library_id = t.library_id AND f.deleted_at IS NULL
+         WHERE t.library_id = ? AND t.deleted_at IS NULL
+         UNION ALL
+         SELECT t.id, 0, 'cover', ${TRACK_FILE_COLUMNS}
+         FROM tracks t
+         JOIN files f ON f.id = t.cover_file_id
+           AND f.library_id = t.library_id AND f.deleted_at IS NULL
+         WHERE t.library_id = ? AND t.deleted_at IS NULL
+         UNION ALL
+         SELECT ta.track_id, ta.position, 'attachment', ${TRACK_FILE_COLUMNS}
+         FROM track_attachments ta
+         JOIN tracks t ON t.id = ta.track_id AND t.library_id = ? AND t.deleted_at IS NULL
+         JOIN files f ON f.id = ta.file_id
+           AND f.library_id = t.library_id AND f.deleted_at IS NULL
+         ORDER BY 1, 3, 2, 4`,
+      )
+      .bind(libraryId, libraryId, libraryId)
+      .all<TrackFileRow>()
+
+    const tracks: TrackWithFiles[] = trackResult.results.map((row) => ({
+      ...toTrack(row),
+      audioFile: null,
+      coverFile: null,
+      attachments: [],
+    }))
+    const byId = new Map(tracks.map((track) => [track.id, track]))
+
+    for (const row of fileResult.results) {
+      const track = byId.get(row.track_id)
+      if (!track) continue
+      const file = toFile(row)
+      if (row.usage === 'audio') {
+        track.audioFile = file
+      } else if (row.usage === 'cover') {
+        track.coverFile = file
+      } else {
+        track.attachments.push(file)
+      }
+    }
+
+    return tracks
+  }
+
+  async upsertTrack(input: UpsertTrackInput): Promise<TrackRecord | null> {
+    const upsert = this.db
+      .prepare(
+        `INSERT INTO tracks (
+           id, library_id, name, name_lower, bpm, musical_key, genre, tags_json, notes,
+           color, is_favorite, duration_sec, play_count, last_played_at, created_at,
+           updated_at, version, deleted_at, audio_file_id, cover_file_id
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?, 1, NULL, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           name = excluded.name,
+           name_lower = excluded.name_lower,
+           bpm = excluded.bpm,
+           musical_key = excluded.musical_key,
+           genre = excluded.genre,
+           tags_json = excluded.tags_json,
+           notes = excluded.notes,
+           color = excluded.color,
+           is_favorite = excluded.is_favorite,
+           duration_sec = excluded.duration_sec,
+           created_at = excluded.created_at,
+           updated_at = excluded.updated_at,
+           deleted_at = NULL,
+           audio_file_id = excluded.audio_file_id,
+           cover_file_id = excluded.cover_file_id,
+           version = tracks.version + 1
+         WHERE tracks.library_id = excluded.library_id
+         RETURNING ${TRACK_COLUMNS}`,
+      )
+      .bind(
+        input.id,
+        input.libraryId,
+        input.name,
+        input.name.toLowerCase(),
+        input.bpm,
+        input.musicalKey,
+        input.genre,
+        JSON.stringify(input.tags),
+        input.notes,
+        input.color,
+        input.isFavorite ? 1 : 0,
+        input.durationSec,
+        input.createdAt,
+        input.updatedAt,
+        input.audioFileId,
+        input.coverFileId,
+      )
+
+    // Защита от гонки с чужим треком: правки вложений выполняются только для
+    // строки этой библиотеки (EXISTS), поэтому id из другой библиотеки не трогаем.
+    const clearAttachments = this.db
+      .prepare(
+        `DELETE FROM track_attachments
+         WHERE track_id = ?
+           AND EXISTS (SELECT 1 FROM tracks WHERE id = ? AND library_id = ?)`,
+      )
+      .bind(input.id, input.id, input.libraryId)
+    const insertAttachments = input.attachmentFileIds.map((fileId, position) =>
+      this.db
+        .prepare(
+          `INSERT INTO track_attachments (track_id, file_id, position)
+           SELECT ?, ?, ?
+           WHERE EXISTS (SELECT 1 FROM tracks WHERE id = ? AND library_id = ?)`,
+        )
+        .bind(input.id, fileId, position, input.id, input.libraryId),
+    )
+
+    const results = await this.db.batch([upsert, clearAttachments, ...insertAttachments])
+    const row = results[0]?.results[0] as TrackRow | undefined
+    return row ? toTrack(row) : null
+  }
+
+  async softDeleteTrack(libraryId: string, trackId: string, now: string): Promise<void> {
+    await this.db
+      .prepare(
+        `UPDATE tracks SET deleted_at = ?
+         WHERE id = ? AND library_id = ? AND deleted_at IS NULL`,
+      )
+      .bind(now, trackId, libraryId)
+      .run()
+  }
+
+  async upsertFile(input: UpsertFileInput): Promise<FileRecord | null> {
+    const result = await this.db
+      .prepare(
+        `INSERT INTO files (
+           id, library_id, kind, r2_key, mime_type, size, original_name, sha256,
+           created_at, deleted_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, NULL)
+         ON CONFLICT(id) DO UPDATE SET
+           kind = excluded.kind,
+           r2_key = excluded.r2_key,
+           mime_type = excluded.mime_type,
+           size = excluded.size,
+           original_name = excluded.original_name,
+           created_at = excluded.created_at,
+           deleted_at = NULL
+         WHERE files.library_id = excluded.library_id
+         RETURNING ${FILE_COLUMNS}`,
+      )
+      .bind(
+        input.id,
+        input.libraryId,
+        input.kind,
+        input.r2Key,
+        input.mimeType,
+        input.size,
+        input.originalName,
+        input.now,
+      )
+      .all<FileRow>()
+    const row = result.results[0]
+    return row ? toFile(row) : null
+  }
+
+  async findFileById(fileId: string): Promise<FileRecord | null> {
+    const row = await this.db
+      .prepare(`SELECT ${FILE_COLUMNS} FROM files WHERE id = ?`)
+      .bind(fileId)
+      .first<FileRow>()
+    return row ? toFile(row) : null
   }
 
   async createSession(input: CreateSessionInput): Promise<SessionRecord> {

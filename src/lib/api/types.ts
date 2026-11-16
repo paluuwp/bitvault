@@ -48,3 +48,62 @@ export interface MeResponse {
    */
   expiresAt?: string
 }
+
+/** Метаданные файла, хранящегося в аккаунте. */
+export interface RemoteFile {
+  id: string
+  kind: 'audio' | 'cover' | 'attachment'
+  name: string
+  mimeType: string
+  size: number
+}
+
+/** Трек библиотеки аккаунта в том виде, в каком его отдаёт Worker. */
+export interface RemoteTrack {
+  id: string
+  name: string
+  bpm: number | null
+  musicalKey: string | null
+  genre: string | null
+  tags: string[]
+  notes: string
+  color: string
+  isFavorite: boolean
+  durationSec: number | null
+  createdAt: string
+  updatedAt: string
+  lastPlayedAt: string | null
+  playCount: number
+  audioFile: RemoteFile | null
+  coverFile: RemoteFile | null
+  attachments: RemoteFile[]
+}
+
+export interface RemoteTracksResponse {
+  library: RemoteLibrary
+  tracks: RemoteTrack[]
+}
+
+/** Тело PUT трека: идентификаторы файлов, уже загруженных в библиотеку. */
+export interface RemoteTrackInput {
+  name: string
+  bpm: number | null
+  musicalKey: string | null
+  genre: string | null
+  tags: string[]
+  notes: string
+  color: string
+  isFavorite: boolean
+  durationSec: number | null
+  createdAt: string
+  updatedAt: string
+  audioFileId: string | null
+  coverFileId: string | null
+  attachmentFileIds: string[]
+}
+
+export interface RemoteFileUrlResponse {
+  url: string
+  expiresAt: string
+  file: RemoteFile
+}

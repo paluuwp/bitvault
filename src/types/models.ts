@@ -63,6 +63,8 @@ export interface Track {
   updatedAt: string
   lastPlayedAt: string | null
   playCount: number
+  /** Трек пришёл из библиотеки аккаунта, а не хранится только на устройстве. */
+  source?: 'cloud'
 }
 
 export interface StoredFile {
@@ -73,6 +75,10 @@ export interface StoredFile {
   size: number
   originalName: string
   createdAt: string
+  /** Когда файл был загружен в библиотеку аккаунта (если загружался). */
+  cloudUploadedAt?: string
+  /** Библиотека аккаунта, в которую загружен файл. */
+  cloudLibraryId?: string
 }
 
 export type NewTrackInput = {

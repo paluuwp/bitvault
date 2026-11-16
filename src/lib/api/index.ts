@@ -21,6 +21,11 @@ export type {
   ApiErrorCode,
   LoginResponse,
   MeResponse,
+  RemoteFile,
+  RemoteFileUrlResponse,
   RemoteLibrary,
+  RemoteTrack,
+  RemoteTrackInput,
+  RemoteTracksResponse,
   RemoteUser,
 } from './types'

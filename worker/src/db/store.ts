@@ -1,4 +1,6 @@
 export const DEFAULT_LIBRARY_NAME = 'Моя библиотека'
+/** Цвет трека по умолчанию — совпадает с клиентской палитрой. */
+export const DEFAULT_TRACK_COLOR = '#D8FF3E'
 
 export interface UserRecord {
   id: string
@@ -33,6 +35,77 @@ export interface SessionRecord {
   userAgent: string | null
 }
 
+/** Файл библиотеки: байты лежат в приватном R2 по ключу r2Key. */
+export interface FileRecord {
+  id: string
+  libraryId: string
+  kind: string
+  r2Key: string
+  mimeType: string | null
+  size: number | null
+  originalName: string | null
+  createdAt: string | null
+  deletedAt: string | null
+}
+
+export interface TrackRecord {
+  id: string
+  libraryId: string
+  name: string
+  bpm: number | null
+  musicalKey: string | null
+  genre: string | null
+  tags: string[]
+  notes: string
+  color: string
+  isFavorite: boolean
+  durationSec: number | null
+  createdAt: string
+  updatedAt: string
+  lastPlayedAt: string | null
+  playCount: number
+  audioFileId: string | null
+  coverFileId: string | null
+  deletedAt: string | null
+}
+
+/** Трек с присоединёнными неудалёнными файлами библиотеки. */
+export interface TrackWithFiles extends TrackRecord {
+  audioFile: FileRecord | null
+  coverFile: FileRecord | null
+  attachments: FileRecord[]
+}
+
+export interface UpsertTrackInput {
+  id: string
+  libraryId: string
+  name: string
+  bpm: number | null
+  musicalKey: string | null
+  genre: string | null
+  tags: string[]
+  notes: string
+  color: string
+  isFavorite: boolean
+  durationSec: number | null
+  createdAt: string
+  updatedAt: string
+  audioFileId: string | null
+  coverFileId: string | null
+  attachmentFileIds: string[]
+}
+
+export interface UpsertFileInput {
+  id: string
+  libraryId: string
+  kind: string
+  r2Key: string
+  mimeType: string | null
+  size: number | null
+  originalName: string | null
+  now: string
+}
+
 export interface UpsertUserInput {
   googleSub: string
   email: string
@@ -65,6 +138,22 @@ export interface Store {
   /** Идемпотентно: id = `lib_<userId>`, владелец получает роль owner. */
   createPersonalLibrary(userId: string, now: string, name?: string): Promise<LibraryRecord>
   listLibrariesForUser(userId: string): Promise<LibraryWithRole[]>
+  /** Библиотека с ролью пользователя или null, если членства нет. */
+  findLibraryForUser(libraryId: string, userId: string): Promise<LibraryWithRole | null>
+  /** Неудалённые треки библиотеки вместе с аудио, обложкой и вложениями. */
+  listTracksForLibrary(libraryId: string): Promise<TrackWithFiles[]>
+  /**
+   * Upsert трека по id: обновляет существующий или создаёт новый, заменяет
+   * вложения. play_count/last_played_at существующего трека сохраняются.
+   * null — id уже занят треком другой библиотеки.
+   */
+  upsertTrack(input: UpsertTrackInput): Promise<TrackRecord | null>
+  /** Мягкое удаление; повторный вызов ничего не меняет. */
+  softDeleteTrack(libraryId: string, trackId: string, now: string): Promise<void>
+  /** Upsert файла по id; перезапись в той же библиотеке допустима. null — чужая библиотека. */
+  upsertFile(input: UpsertFileInput): Promise<FileRecord | null>
+  /** Ищет файл по id, включая мягко удалённые. */
+  findFileById(fileId: string): Promise<FileRecord | null>
   createSession(input: CreateSessionInput): Promise<SessionRecord>
   findSessionByHash(tokenHash: string): Promise<SessionRecord | null>
   /** Возвращает true, если сессия была продлена. */

@@ -1,6 +1,7 @@
 import { unzip, zip, type AsyncZippable, type Unzipped, type UnzipFileInfo } from 'fflate'
 import type { ImportResult, StoredFile, Track, TransferProgress } from '@/types/models'
 import { FILES_DIR, LIMITS, MANIFEST_ENTRY } from './constants'
+import { downloadCloudFile, getCloudContext, resolveCloudFile } from './cloud'
 import { openDatabase, runWriteTransaction } from './db'
 import { AppError, toAppError } from './errors'
 import { formatBytes } from './format'
@@ -97,10 +98,78 @@ export function assertLibraryExportable(trackCount: number, files: StoredFile[])
   }
 }
 
+/**
+ * Докачивает файлы облачных треков, которых ещё нет на устройстве.
+ *
+ * Экспорт обязан быть полной резервной копией: без этого шага в архив попали
+ * бы треки с ссылками на файлы, которых в архиве нет.
+ */
+async function cacheAccountFiles(
+  tracks: Track[],
+  onProgress?: ProgressListener,
+): Promise<void> {
+  const context = getCloudContext()
+  if (!context) return
+
+  const database = await openDatabase()
+  const cached = await database.getAll('files')
+  const cachedIds = new Set(cached.map((file) => file.id))
+  const missing: string[] = []
+  for (const track of tracks) {
+    if (track.source !== 'cloud') continue
+    for (const fileId of collectTrackFileIds(track)) {
+      if (!cachedIds.has(fileId) && !missing.includes(fileId)) missing.push(fileId)
+    }
+  }
+  if (missing.length === 0) return
+
+  // Размеры и лимиты проверяем до скачивания, чтобы не тянуть лишнее.
+  let extraBytes = 0
+  for (const fileId of missing) {
+    try {
+      const { file } = await resolveCloudFile(context, fileId)
+      extraBytes += file.size
+    } catch (error) {
+      throw toAppError(error)
+    }
+  }
+
+  if (cached.length + missing.length > LIMITS.importFilesMax) {
+    throw new AppError(
+      'EXPORT_FAILED',
+      `В библиотеке больше ${LIMITS.importFilesMax} файлов — такой архив не удастся импортировать.`,
+    )
+  }
+  const totalBytes = cached.reduce((sum, file) => sum + file.size, 0) + extraBytes
+  if (totalBytes > LIMITS.importTotalMaxBytes) {
+    throw new AppError(
+      'EXPORT_FAILED',
+      `Файлы библиотеки занимают ${formatBytes(totalBytes)}, а один архив поддерживает до ${formatBytes(LIMITS.importTotalMaxBytes)}. Удалите часть файлов, чтобы сделать резервную копию.`,
+    )
+  }
+
+  for (let index = 0; index < missing.length; index += 1) {
+    const fileId = missing[index]
+    if (!fileId) continue
+    reportProgress(onProgress, {
+      phase: 'prepare',
+      current: index,
+      total: missing.length,
+      label: 'Загрузка файлов аккаунта…',
+    })
+    try {
+      await downloadCloudFile(context, fileId)
+    } catch (error) {
+      throw toAppError(error)
+    }
+  }
+}
+
 export async function exportLibrary(onProgress?: ProgressListener): Promise<Blob> {
   try {
     const database = await openDatabase()
     const tracks = await database.getAll('tracks')
+    await cacheAccountFiles(tracks, onProgress)
     const files = await database.getAll('files')
     assertLibraryExportable(tracks.length, files)
     const total = files.length

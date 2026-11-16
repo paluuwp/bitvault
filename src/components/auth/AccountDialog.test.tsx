@@ -92,7 +92,22 @@ function createApiHarness() {
   const me = vi.fn<RemoteApi['me']>()
   const logout = vi.fn<RemoteApi['logout']>(async () => undefined)
   const logoutAll = vi.fn<RemoteApi['logoutAll']>(async () => undefined)
-  const api: RemoteApi = { loginWithGoogle, me, logout, logoutAll }
+  const listTracks = vi.fn<RemoteApi['listTracks']>()
+  const putTrack = vi.fn<RemoteApi['putTrack']>()
+  const deleteTrack = vi.fn<RemoteApi['deleteTrack']>(async () => undefined)
+  const uploadFile = vi.fn<RemoteApi['uploadFile']>()
+  const fileUrl = vi.fn<RemoteApi['fileUrl']>()
+  const api: RemoteApi = {
+    loginWithGoogle,
+    me,
+    logout,
+    logoutAll,
+    listTracks,
+    putTrack,
+    deleteTrack,
+    uploadFile,
+    fileUrl,
+  }
   return { api, loginWithGoogle, me, logout, logoutAll }
 }
 
@@ -150,7 +165,7 @@ describe('AccountDialog: анонимный режим', () => {
 
     expect(screen.getByRole('heading', { name: 'Аккаунт' })).toBeInTheDocument()
     expect(
-      screen.getByText(/Вход нужен для будущей синхронизации/),
+      screen.getByText(/Вход открывает библиотеку аккаунта/),
     ).toBeInTheDocument()
     expect(
       screen.getByText('Токен хранится в этом браузере, e-mail проверяется на сервере.'),
@@ -308,7 +323,7 @@ describe('AccountDialog: авторизованный режим', () => {
     expect(screen.getByText('владелец')).toBeInTheDocument()
     expect(screen.getByText('редактор')).toBeInTheDocument()
     expect(screen.getByText(/Сессия действует до/)).toBeInTheDocument()
-    expect(screen.getByText(/Синхронизация ещё не включена/)).toBeInTheDocument()
+    expect(screen.getByText(/Треки аккаунта хранятся на сервере/)).toBeInTheDocument()
 
     expect(sessionStore.read(NOW)?.user.name).toBe('Иван Обновлённый')
   })
@@ -362,7 +377,7 @@ describe('AccountDialog: авторизованный режим', () => {
     await waitFor(() => expect(logout).toHaveBeenCalledWith(TOKEN))
     expect(sessionStore.read(NOW)).toBeNull()
     expect(
-      await screen.findByText(/Вход нужен для будущей синхронизации/),
+      await screen.findByText(/Вход открывает библиотеку аккаунта/),
     ).toBeInTheDocument()
   })
 

@@ -1,9 +1,9 @@
 # BitVault API — контракт v1
 
 Черновик контракта для Worker API (`/api/v1`). Источник истины по схеме —
-миграции D1 в `worker/migrations/`. Реализация первой очереди: health,
-авторизация Google, сессии, `/auth/me`, выход. Остальные разделы — план,
-эндпоинты появятся следующими очередями.
+миграции D1 в `worker/migrations/`. Реализованы: health, авторизация Google,
+сессии, `/auth/me`, выход, библиотека аккаунта (треки, файлы, медиа-стриминг).
+Публичные ссылки — план следующих очередей.
 
 ## Общие правила
 
@@ -26,9 +26,9 @@
   `UNAVAILABLE` (503).
 - Время — ISO 8601 UTC. Размеры — байты. ID — строки (UUID или
   `^[A-Za-z0-9_-]{1,128}$` для файлов из ZIP-импорта).
-- Запись-операции принимают `clientMutationId` (строка, уникальная в рамках
-  пользователя) и идемпотентны: повтор с тем же ID возвращает прежний
-  результат, а не создаёт дубль.
+- Запись треков — upsert по клиентскому id (`PUT`), идемпотентна по
+  построению; конфликтов версий нет, действует last-write-wins (клиент
+  присылает свои `createdAt`/`updatedAt`).
 - Секреты (`GOOGLE_CLIENT_ID` не секрет, `MEDIA_TOKEN_SECRET`,
   `ALLOWED_EMAILS`) живут только в Worker; в клиентскую сборку попадает лишь
   URL API и публичный Google Client ID.
@@ -111,39 +111,100 @@ SHA-256 хеш. Срок — 30 дней; продлевается при люб
 Без авторизации. Дешёвая проверка D1 (`SELECT 1`): 200 `{ "ok": true }`
 или 503 `{ "ok": false }`, если база недоступна.
 
+## Библиотека аккаунта
+
+Все эндпоинты требуют Bearer-сессию. Членство проверяется по
+`library_members`: нет библиотеки или членства — 404 (существование чужой
+библиотеки не раскрывается); роль `viewer` при записи — 403. Роли `owner` и
+`editor` могут писать. ID треков и файлов генерирует клиент
+(`^[A-Za-z0-9_-]{1,128}$`); upsert по ID.
+
+### GET /libraries/:libraryId/tracks
+
+Ответ 200:
+
+```json
+{
+  "library": { "id": "...", "name": "Моя библиотека", "role": "owner" },
+  "tracks": [
+    {
+      "id": "...", "name": "Beat", "bpm": 140, "musicalKey": "Am",
+      "genre": "Trap", "tags": ["dark"], "notes": "", "color": "#8B5CF6",
+      "isFavorite": false, "durationSec": 120,
+      "createdAt": "...", "updatedAt": "...",
+      "lastPlayedAt": null, "playCount": 0,
+      "audioFile": { "id": "...", "kind": "audio", "name": "beat.wav",
+                     "mimeType": "audio/wav", "size": 123 },
+      "coverFile": null,
+      "attachments": []
+    }
+  ]
+}
+```
+
+Удалённые треки (мягкое удаление) в список не попадают.
+
+### PUT /libraries/:libraryId/tracks/:trackId
+
+Тело — JSON трека: `name`, `bpm`, `musicalKey`, `genre`, `tags`, `notes`,
+`color`, `isFavorite`, `durationSec`, `createdAt`, `updatedAt`,
+`audioFileId`, `coverFileId`, `attachmentFileIds`. Ограничения: имя 1–100,
+BPM 20–400 целое, жанр ≤40, теги ≤10 по ≤24, заметки ≤2000, вложений ≤50,
+цвет — из палитры приложения, тело ≤64 КиБ. Все переданные файлы должны уже
+лежать в этой библиотеке, иначе 400. Ответ 200 — сохранённый трек в формате
+элемента списка. Трек с тем же id в другой библиотеке — 409.
+
+### DELETE /libraries/:libraryId/tracks/:trackId
+
+Мягкое удаление (`deleted_at`). Ответ 204.
+
+### PUT /libraries/:libraryId/files/:fileId?kind=&name=
+
+Тело — сырые байты файла, `Content-Type` — MIME файла, `kind` — `audio`,
+`cover` или `attachment`, `name` — исходное имя. Лимиты: аудио и вложение
+≤90 МиБ (ограничение тела Worker), обложка ≤10 МиБ; пустое тело — 400.
+Файл кладётся в приватный R2 (`libraries/<libraryId>/files/<fileId>`),
+имя хранится только в D1. Ответ 200 — `{ id, kind, name, mimeType, size }`.
+Файл с тем же id в другой библиотеке — 409.
+
+### GET /libraries/:libraryId/files/:fileId/url
+
+Ответ 200:
+
+```json
+{
+  "url": "https://<worker-host>/api/v1/media/<fileId>?exp=<unix>&sig=<hex>",
+  "expiresAt": "2026-11-16T11:00:00.000Z",
+  "file": { "id": "...", "kind": "audio", "name": "beat.wav",
+            "mimeType": "audio/wav", "size": 123 }
+}
+```
+
+Подпись — HMAC-SHA256 от `<fileId>|<exp>` секретом `MEDIA_TOKEN_SECRET`,
+TTL 1 час. Если секрет не задан — 503 `UNAVAILABLE`.
+
+### GET /media/:fileId?exp=&sig=
+
+Без Bearer: доступ подтверждается подписью и сроком. Поток из R2 с
+`Accept-Ranges: bytes`, одиночный `Range` → 206 и `Content-Range`;
+недостижимый диапазон → 416, синтаксически неверный или множественный
+`Range` игнорируется и отдаётся полный файл. Просроченная или неверная
+подпись — 401, файл не найден — 404. `Cache-Control: private, max-age=3600`,
+`X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src
+'none'; sandbox`; вложения отдаются с `Content-Disposition: attachment`.
+
 ## План следующих очередей (формы уточняются при реализации)
 
-### Библиотека и треки
+### Синхронизация и прослушивания
 
-- `GET /library` — библиотека текущего пользователя и счётчики.
-- `GET /tracks?since=<ISO>&limit=<n>&cursor=<opaque>` — дельта-выборка,
-  включая удалённые (`deletedAt`) для клиентского tombstone.
-- `POST /tracks` — создать (с `clientMutationId`).
-- `GET /tracks/:id`, `PATCH /tracks/:id` (с `version` для оптимистичной
-  блокировки, 409 при расхождении), `DELETE /tracks/:id` (мягкое удаление).
+- `GET /tracks?since=<ISO>&limit=<n>&cursor=<opaque>` — дельта-выборка.
 - `POST /tracks/:id/plays` — `{ "playId": "<uuid>", "playedAt": "<ISO>" }`.
 - `POST /tracks/:id/favorite` — переключение избранного.
 
-### Файлы и загрузка
+### Файлы и загрузка (докачка частями)
 
-- `POST /files/uploads` — начать загрузку:
-  `{ kind, originalName, mimeType, size, clientMutationId }` →
-  `{ uploadId, partSize, uploadUrl?: ... }`.
-- `PUT /files/uploads/:uploadId/parts/:partNumber` — тело — часть 8 МиБ.
-- `POST /files/uploads/:uploadId/complete` — завершить, получить `fileId`.
-- `DELETE /files/uploads/:uploadId` — отменить.
-- `GET /files/:id` — метаданные, `DELETE /files/:id` — удалить (только
-  неиспользуемый файл).
-- Правила: аудио ≤250 МБ, обложка ≤10 МБ, вложение ≤250 МБ, 50 вложений на
-  трек; MIME проверяется по расширению из белого списка.
-
-### Медиа-стриминг
-
-- `GET /media/:fileId?token=<hmac>` — поток из R2, поддержка `Range`
-  (`206 Partial Content`, `Content-Range`), `Cache-Control: private,
-  max-age=3600`. Токен — HMAC-SHA256 от `fileId|userId|exp`, TTL 1 час.
-- Токен выдаётся в ответах, где клиенту нужен URL (трек, обложка,
-  вложение). Просроченный токен — 401; клиент запрашивает новый через API.
+- `POST /files/uploads` и части по 8 МиБ — для файлов больше лимита тела
+  Worker (~100 МБ).
 
 ### Публичные ссылки (позже)
 
@@ -162,8 +223,9 @@ SHA-256 хеш. Срок — 30 дней; продлевается при люб
   last_used_at, user_agent)`.
 - `tracks(id, library_id, name, name_lower, bpm, musical_key, genre,
   tags_json, notes, color, is_favorite, duration_sec, play_count,
-  last_played_at, created_at, updated_at, version, deleted_at)` —
-  индекс `(library_id, updated_at)`.
+  last_played_at, created_at, updated_at, version, deleted_at,
+  audio_file_id, cover_file_id)` — индекс `(library_id, updated_at)`;
+  миграция `0002_track_files.sql`.
 - `track_attachments(track_id, file_id, position)` — PK `(track_id, file_id)`.
 - `files(id, library_id, kind, r2_key UNIQUE, mime_type, size, original_name,
   sha256, created_at, deleted_at)`.

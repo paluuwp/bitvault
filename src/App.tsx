@@ -3,6 +3,7 @@ import { AccountDialog } from '@/components/auth'
 import { AppShell } from '@/components/layout/AppShell'
 import type { AppSection } from '@/components/layout/navigation'
 import { LibraryPage } from '@/pages/LibraryPage'
+import { CloudMigrationBanner } from '@/components/library/CloudMigrationBanner'
 import { LibraryToolbar } from '@/components/library/LibraryToolbar'
 import type { TrackMenuAction } from '@/components/library/trackMenu'
 import { SettingsDialog } from '@/components/settings/SettingsDialog'
@@ -14,6 +15,7 @@ import { PlayerProvider, usePlayerControls, usePlayerTrack } from '@/context/Pla
 import { AuthProvider, useAuth } from '@/context/AuthContext'
 import { ToastProvider, useToast } from '@/context/ToastContext'
 import { useLibraryFilters, buildTagStats } from '@/hooks/useLibraryFilters'
+import { useCloudMigration } from '@/hooks/useCloudMigration'
 import { useLibraryTransfer } from '@/hooks/useLibraryTransfer'
 import { useStorageInfo } from '@/hooks/useStorageInfo'
 import { useTracks } from '@/hooks/useTracks'
@@ -22,9 +24,11 @@ import { useUpload } from '@/hooks/useUpload'
 import {
   AppError,
   LIMITS,
+  clearCloudCache,
   deleteTrack,
-  getFile,
+  getFileInfo,
   getFileUrl,
+  getStoredFile,
   isAppError,
 } from '@/lib'
 import type { ImportResult, Track, TrackPatch } from '@/types/models'
@@ -32,18 +36,32 @@ import type { ImportResult, Track, TrackPatch } from '@/types/models'
 async function downloadTrackAudio(track: Track): Promise<void> {
   if (!track.audioFileId) return
 
-  const file = await getFile(track.audioFileId)
+  const file = await getFileInfo(track.audioFileId)
   if (!file) throw new AppError('NOT_FOUND', 'Аудиофайл не найден.')
 
-  const handle = await getFileUrl(track.audioFileId)
+  // Локальный файл отдаём напрямую; облачный сначала скачиваем, иначе браузер
+  // откроет подписанную ссылку вместо сохранения под исходным именем.
+  const local = await getStoredFile(track.audioFileId)
+  let blob: Blob
+  if (local) {
+    blob = local.blob
+  } else {
+    const handle = await getFileUrl(track.audioFileId)
+    const response = await fetch(handle.url)
+    if (!response.ok) throw new AppError('NOT_FOUND', 'Не удалось скачать аудио.')
+    blob = await response.blob()
+    handle.revoke()
+  }
+
+  const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
-  link.href = handle.url
-  link.download = file.originalName
+  link.href = url
+  link.download = file.name
   link.rel = 'noopener'
   document.body.appendChild(link)
   link.click()
   link.remove()
-  window.setTimeout(handle.revoke, 1000)
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 /** Понятное пользователю описание ошибки загрузки библиотеки. */
@@ -62,8 +80,26 @@ function AppContent({ library }: { library: UseTracksResult }) {
   const storage = useStorageInfo()
   const refreshStorage = storage.refresh
   const transfer = useLibraryTransfer()
+  const cloudMigration = useCloudMigration(library.tracks, library.refresh)
   const { currentTrack } = usePlayerTrack()
   const { playTrack, togglePlay, stop, removeFromQueue, syncTrack } = usePlayerControls()
+
+  // Вход открывает библиотеку аккаунта, выход убирает её кэш с устройства.
+  const previousAuthRef = useRef(authStatus)
+  const refreshLibrary = library.refresh
+  useEffect(() => {
+    const previous = previousAuthRef.current
+    if (previous === authStatus) return
+    previousAuthRef.current = authStatus
+
+    if (authStatus === 'authenticated') {
+      void refreshLibrary()
+      return
+    }
+    if (previous === 'authenticated') {
+      void clearCloudCache().then(() => refreshLibrary())
+    }
+  }, [authStatus, refreshLibrary])
 
   const [activeSection, setActiveSection] = useState<AppSection>('library')
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null)
@@ -343,8 +379,16 @@ function AppContent({ library }: { library: UseTracksResult }) {
         view={filters.view}
         onViewChange={filters.setView}
         onAddTrack={handleAddTrack}
-        updatesBlocked={upload.isUploading || transfer.importing || transfer.exporting || deleting}
+        updatesBlocked={upload.isUploading || transfer.importing || transfer.exporting || deleting || cloudMigration.migrating}
       >
+        {authStatus === 'authenticated' ? (
+          <CloudMigrationBanner
+            count={cloudMigration.localTracks.length}
+            migrating={cloudMigration.migrating}
+            progress={cloudMigration.progress}
+            onMigrate={() => void cloudMigration.migrate()}
+          />
+        ) : null}
         <DropZone onFiles={handleIncomingFiles}>
           <LibraryPage
             title={isFavorites ? 'Избранное' : 'Библиотека'}

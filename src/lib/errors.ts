@@ -12,6 +12,7 @@ export type AppErrorCode =
   | 'IMPORT_CORRUPT_ZIP'
   | 'IMPORT_LIMIT_EXCEEDED'
   | 'EXPORT_FAILED'
+  | 'CLOUD_UNAVAILABLE'
 
 const DEFAULT_MESSAGES: Record<AppErrorCode, string> = {
   VALIDATION: 'Проверьте введённые данные.',
@@ -27,6 +28,7 @@ const DEFAULT_MESSAGES: Record<AppErrorCode, string> = {
   IMPORT_CORRUPT_ZIP: 'Архив повреждён или имеет неверный формат.',
   IMPORT_LIMIT_EXCEEDED: 'Превышены ограничения импорта.',
   EXPORT_FAILED: 'Не удалось создать архив экспорта.',
+  CLOUD_UNAVAILABLE: 'Не удалось связаться с аккаунтом. Проверьте интернет и попробуйте снова.',
 }
 
 export interface AppErrorOptions {

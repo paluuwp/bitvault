@@ -8,6 +8,7 @@ import { verifyGoogleIdToken } from './lib/google'
 import type { VerifyIdToken } from './lib/google'
 import { authRoutes } from './routes/auth'
 import { healthRoutes } from './routes/health'
+import { libraryRoutes, mediaRoutes } from './routes/library'
 
 const BASE_PATH = '/api/v1'
 
@@ -30,6 +31,8 @@ export function createApp(deps: AppDeps = {}) {
   app.use('*', corsMiddleware())
   app.route('/health', healthRoutes())
   app.route('/auth', authRoutes({ storeFactory, verifyIdToken, now }))
+  app.route('/libraries', libraryRoutes({ storeFactory, now }))
+  app.route('/media', mediaRoutes({ storeFactory, now }))
 
   app.notFound((c) =>
     jsonResponseWithCors(

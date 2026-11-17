@@ -13,7 +13,7 @@ export function UploadOverlay({ progress }: UploadOverlayProps) {
     <div
       role="status"
       aria-live="polite"
-      className="fixed top-20 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-card border border-control-border bg-surface shadow-popover"
+      className="fl-panel fixed top-20 right-4 z-40 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-card shadow-popover"
     >
       <div className="fl-titlebar">Добавление битов</div>
       <div className="p-4">

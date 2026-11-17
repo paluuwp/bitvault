@@ -15,7 +15,9 @@ describe('TrackCard', () => {
     renderWithProviders(<TrackCard track={track} />)
 
     expect(screen.getByText('Night Drive')).toBeInTheDocument()
-    expect(screen.getByText('140 BPM')).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: '140 BPM, тональность F#m' })).toBeInTheDocument()
+    expect(screen.getByText('140')).toBeInTheDocument()
+    expect(screen.getByText('F#m')).toBeInTheDocument()
     expect(screen.getByText('2:58')).toBeInTheDocument()
   })
 

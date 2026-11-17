@@ -14,7 +14,7 @@ export function Tag({ children, active = false, className }: TagProps) {
         'inline-flex max-w-full items-center truncate rounded-chip border px-2 py-0.5 text-caption whitespace-nowrap',
         active
           ? 'border-accent bg-accent/10 text-accent'
-          : 'border-border bg-surface text-text-muted hover:border-control-border-hover',
+          : 'border-divider bg-surface text-text-muted hover:border-key-border hover:bg-surface-raised',
         className,
       )}
     >

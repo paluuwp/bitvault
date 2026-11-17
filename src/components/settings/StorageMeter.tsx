@@ -99,7 +99,7 @@ export function StorageMeter({ info, loading, onRequestPersistence }: StorageMet
         </p>
       )}
 
-      <div className="mt-4 flex flex-col gap-2 border-t border-border pt-3">
+      <div className="mt-4 flex flex-col gap-2 border-t border-divider pt-3">
         <p className="fl-inset flex items-start gap-2 rounded-control p-2.5 text-caption text-text-muted">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {info?.persisted

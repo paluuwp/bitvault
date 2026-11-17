@@ -56,7 +56,7 @@ function ToastCard({
   }, [item.id, onDismiss])
 
   return (
-    <div className="pointer-events-auto flex items-start gap-3 rounded-control border border-border bg-surface p-3 shadow-popover">
+    <div className="fl-panel pointer-events-auto flex items-start gap-3 rounded-control border-divider p-3 shadow-popover">
       <span
         aria-hidden="true"
         className={clsx('fl-led mt-1.5 shrink-0', variantLedClasses[item.variant])}

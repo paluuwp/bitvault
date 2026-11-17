@@ -26,15 +26,15 @@ function ImportReport({ result }: { result: ImportResult }) {
   return (
     <div className="flex flex-col gap-4">
       <dl className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-control border border-border bg-bg-subtle p-3">
+        <div className="fl-inset rounded-control p-3">
           <dt className="text-caption text-text-muted">Импортировано</dt>
           <dd className="mt-0.5 font-mono text-h1 text-text">{result.tracksImported}</dd>
         </div>
-        <div className="rounded-control border border-border bg-bg-subtle p-3">
+        <div className="fl-inset rounded-control p-3">
           <dt className="text-caption text-text-muted">Пропущено</dt>
           <dd className="mt-0.5 font-mono text-h1 text-text">{result.tracksSkipped}</dd>
         </div>
-        <div className="rounded-control border border-border bg-bg-subtle p-3">
+        <div className="fl-inset rounded-control p-3">
           <dt className="text-caption text-text-muted">Файлов</dt>
           <dd className="mt-0.5 font-mono text-h1 text-text">{result.filesImported}</dd>
         </div>
@@ -141,10 +141,10 @@ export function ImportDialog({
 
             <label
               className={clsx(
-                'flex cursor-pointer items-start gap-3 rounded-control border p-3 transition-colors',
+                'fl-panel flex cursor-pointer items-start gap-3 rounded-control p-3 transition-colors',
                 mode === 'merge'
-                  ? 'border-accent bg-accent/10'
-                  : 'border-border bg-surface hover:border-border-strong',
+                  ? 'border-accent/60 bg-surface-raised'
+                  : 'hover:border-border-strong',
               )}
             >
               <input
@@ -166,10 +166,10 @@ export function ImportDialog({
 
             <label
               className={clsx(
-                'flex cursor-pointer items-start gap-3 rounded-control border p-3 transition-colors',
+                'fl-panel flex cursor-pointer items-start gap-3 rounded-control p-3 transition-colors',
                 mode === 'replace'
                   ? 'border-danger bg-danger/10'
-                  : 'border-border bg-surface hover:border-border-strong',
+                  : 'hover:border-border-strong',
               )}
             >
               <input

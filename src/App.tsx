@@ -366,8 +366,6 @@ function AppContent({ library }: { library: UseTracksResult }) {
         tags={sidebarTags}
         libraryCount={library.tracks.length}
         favoritesCount={favoritesCount}
-        storageInfo={storage.info}
-        storageLoading={storage.loading}
         account={account}
         onOpenAccount={() => setAccountOpen(true)}
         query={filters.query}

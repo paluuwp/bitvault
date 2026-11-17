@@ -1,5 +1,38 @@
 const PLACEHOLDER = '—'
 
+function isValidBpm(bpm: number | null | undefined): bpm is number {
+  return bpm !== null && bpm !== undefined && Number.isFinite(bpm) && bpm > 0
+}
+
+/** Значение темпа для компактного readout: `140` или `—`. */
+export function formatBpmValue(bpm: number | null | undefined): string {
+  return isValidBpm(bpm) ? String(Math.round(bpm)) : PLACEHOLDER
+}
+
+/** Темп словами для доступной подписи. */
+export function formatBpmLabel(bpm: number | null | undefined): string {
+  return isValidBpm(bpm) ? `${formatBpmValue(bpm)} BPM` : 'Темп не указан'
+}
+
+/** Тональность в нотации FL Studio или `—`. */
+export function formatMusicalKeyValue(key: string | null | undefined): string {
+  return key ? key : PLACEHOLDER
+}
+
+/** Тональность словами для доступной подписи. */
+export function formatMusicalKeyLabel(key: string | null | undefined): string {
+  return key ? `Тональность: ${key}` : 'Тональность не указана'
+}
+
+/** Сводка «темп и тональность» для aria-label групп BPM/KEY. */
+export function formatTempoKeySummary(
+  bpm: number | null | undefined,
+  key: string | null | undefined,
+): string {
+  const keyPart = key ? `тональность ${key}` : 'тональность не указана'
+  return `${formatBpmLabel(bpm)}, ${keyPart}`
+}
+
 const BYTE_UNITS = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'] as const
 
 export function safeTrim(value: unknown): string {

@@ -124,23 +124,29 @@ export function PlayerSlider({
       onPointerUp={finishDrag}
       onPointerCancel={finishDrag}
       className={clsx(
-        'player-slider group relative flex h-10 touch-none items-center rounded-chip outline-offset-4 sm:h-7',
+        'player-slider group relative flex h-10 touch-none items-center rounded-chip outline-offset-4 sm:h-6',
         disabled ? 'cursor-default opacity-50' : 'cursor-pointer',
         className,
       )}
     >
       <div
         ref={trackRef}
-        className="relative h-1 w-full rounded-chip bg-bg-subtle shadow-sunken"
+        className="relative h-1.5 w-full rounded-chip bg-bg-subtle shadow-sunken"
       >
         <div
-          className="absolute inset-y-0 left-0 rounded-chip bg-accent"
+          className="absolute inset-y-0 left-0 rounded-chip bg-gradient-to-r from-accent-pressed via-accent to-accent-hover shadow-[0_0_10px_rgb(247_147_30/0.35)]"
           style={{ width: `${percent}%` }}
-        />
+        >
+          {/* Точка на конце дорожки: позиция видна без наведения */}
+          <span
+            aria-hidden="true"
+            className="absolute top-1/2 -right-[3px] h-2 w-2 -translate-y-1/2 rounded-full bg-accent-hover shadow-[0_0_8px_rgb(247_147_30/0.8)]"
+          />
+        </div>
         <span
           aria-hidden="true"
           className={clsx(
-            'absolute top-1/2 h-4 w-2 -translate-x-1/2 -translate-y-1/2 rounded-led border border-accent-ink/40 bg-accent transition-opacity motion-reduce:transition-none',
+            'absolute top-1/2 h-4 w-2 -translate-x-1/2 -translate-y-1/2 rounded-led border border-accent-ink/40 bg-accent shadow-[0_0_10px_rgb(247_147_30/0.55)] transition-opacity motion-reduce:transition-none',
             dragging
               ? 'opacity-100'
               : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',

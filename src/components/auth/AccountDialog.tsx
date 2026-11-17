@@ -146,7 +146,7 @@ export function AccountDialog({ open, onClose }: AccountDialogProps) {
             {notice ? (
               <p
                 role="status"
-                className="rounded-control border border-info/30 bg-info/10 px-3 py-2 text-body text-text"
+                className="fl-inset rounded-control px-3 py-2 text-body text-text"
               >
                 {notice}
               </p>
@@ -189,7 +189,7 @@ export function AccountDialog({ open, onClose }: AccountDialogProps) {
                   ) : (
                     <span
                       aria-hidden="true"
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface-raised text-label font-semibold text-text"
+                      className="fl-inset flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-label font-semibold text-text"
                     >
                       {accountInitials(session.user.name, session.user.email)}
                     </span>

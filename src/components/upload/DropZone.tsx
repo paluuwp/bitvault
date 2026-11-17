@@ -62,7 +62,7 @@ export function DropZone({ onFiles, children, className }: DropZoneProps) {
       {dragging && (
         <div
           role="status"
-          className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-card border border-accent bg-bg/85 px-6 text-center shadow-bevel"
+          className="fl-panel pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-card border-accent bg-bg/85 px-6 text-center"
         >
           <span className="inline-flex h-14 w-14 items-center justify-center rounded-chip bg-accent/10 text-accent">
             <UploadCloud className="h-7 w-7" aria-hidden="true" />

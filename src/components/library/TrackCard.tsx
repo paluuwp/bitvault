@@ -6,6 +6,7 @@ import { useBlobUrl } from '@/hooks/useBlobUrl'
 import { Badge, DropdownMenu, Spinner, Tag } from '@/components/ui'
 import type { Track } from '@/types/models'
 import { FavoriteButton } from './FavoriteButton'
+import { KeyReadout } from './KeyReadout'
 import {
   formatDuration,
   formatTrackDate,
@@ -72,14 +73,21 @@ export function TrackCard({
       aria-busy={loading || undefined}
       onClick={handleCardClick}
       className={clsx(
-        'group relative flex h-full flex-col gap-3 rounded-card border bg-surface p-2.5 shadow-bevel transition-colors hover:z-10 focus-within:z-10',
-        selected ? 'border-accent focus-within:border-accent' : 'border-border',
+        'group relative flex h-full flex-col gap-3 rounded-card border bg-surface/45 bg-gradient-to-b from-white/5 to-transparent p-2.5 shadow-bevel backdrop-blur-md transition-colors hover:z-10 focus-within:z-10',
+        selected ? 'border-accent' : 'border-divider',
         interactive && !selected && 'hover:border-accent/60 hover:bg-surface-raised focus-within:border-accent/60 focus-within:bg-surface-raised',
         disabled && 'opacity-60',
         onOpen && 'cursor-pointer',
         className,
       )}
     >
+      {selected && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-2 left-0 w-0.5 rounded-r-chip bg-accent"
+        />
+      )}
+
       {index !== undefined && (
         <span
           aria-hidden="true"
@@ -136,9 +144,12 @@ export function TrackCard({
             </button>
           </div>
 
-          <Badge mono variant="overlay" className="absolute top-2 left-2 z-10">
-            {track.bpm === null ? 'BPM —' : `${track.bpm} BPM`}
-          </Badge>
+          <KeyReadout
+            bpm={track.bpm}
+            musicalKey={track.musicalKey}
+            variant="overlay"
+            className="absolute top-2 left-2 z-10 max-sm:top-1 max-sm:left-1"
+          />
 
           <FavoriteButton
             isFavorite={track.isFavorite}
@@ -146,7 +157,7 @@ export function TrackCard({
             disabled={!interactive}
             variant="overlay"
             onToggle={() => onToggleFavorite?.(track)}
-            className="absolute top-2 right-2 z-10"
+            className="absolute top-2 right-2 z-10 max-sm:top-1 max-sm:right-1"
           />
 
           {hasAudio ? (

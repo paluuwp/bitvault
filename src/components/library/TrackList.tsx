@@ -24,7 +24,7 @@ export function TrackList({
   return (
     <ul
       aria-label={label}
-      className="overflow-hidden rounded-card border border-border bg-surface/40"
+      className="fl-panel overflow-hidden rounded-card"
     >
       {tracks.map((track, index) => (
         <TrackRow

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { UpdateBanner } from '@/components/pwa/UpdateBanner'
-import type { LibraryView, SortDirection, SortField, StorageInfo } from '@/types/models'
+import type { LibraryView, SortDirection, SortField } from '@/types/models'
 import type { AppSection } from './navigation'
 import { PlayerBar } from './PlayerBar'
 import { Sidebar } from './Sidebar'
@@ -17,8 +17,6 @@ export interface AppShellProps {
   tags?: SidebarTag[]
   libraryCount?: number
   favoritesCount?: number
-  storageInfo?: StorageInfo | null
-  storageLoading?: boolean
   /** Сведения об аккаунте для блока в сайдбаре. */
   account?: SidebarAccount
   onOpenAccount?: () => void
@@ -44,8 +42,6 @@ export function AppShell({
   tags,
   libraryCount,
   favoritesCount,
-  storageInfo,
-  storageLoading,
   account,
   onOpenAccount,
   query,
@@ -140,7 +136,7 @@ export function AppShell({
   const closeSidebar = () => setSidebarOpen(false)
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-bg text-text">
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-bg bg-[radial-gradient(120%_85%_at_10%_-10%,rgb(247_147_30/0.13),transparent_55%),radial-gradient(90%_70%_at_100%_0%,rgb(139_92_246/0.10),transparent_60%),radial-gradient(70%_60%_at_50%_120%,rgb(56_189_248/0.05),transparent_65%)] text-text">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[70] focus:rounded-control focus:bg-accent focus:px-4 focus:py-2 focus:text-body focus:font-medium focus:text-accent-ink"
@@ -149,8 +145,9 @@ export function AppShell({
       </a>
 
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-sidebar shrink-0 border-r border-border lg:block">
+        <aside className="hidden w-sidebar shrink-0 lg:block lg:p-2">
           <Sidebar
+            className="overflow-hidden rounded-card border border-border/70"
             activeSection={activeSection}
             onNavigate={onNavigate}
             onOpenSettings={onOpenSettings}
@@ -158,8 +155,6 @@ export function AppShell({
             tags={tags}
             libraryCount={libraryCount}
             favoritesCount={favoritesCount}
-            storageInfo={storageInfo}
-            storageLoading={storageLoading}
             account={account}
             onOpenAccount={onOpenAccount}
           />
@@ -182,7 +177,7 @@ export function AppShell({
           <main
             id="main-content"
             tabIndex={-1}
-            className="min-h-0 flex-1 overflow-y-auto px-content py-4"
+            className="min-h-0 flex-1 overflow-y-auto px-content py-4 md:py-5"
           >
             {children}
           </main>
@@ -196,7 +191,7 @@ export function AppShell({
           <div
             aria-hidden="true"
             onClick={closeSidebar}
-            className="absolute inset-0 bg-black/70"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
           <div
             ref={panelRef}
@@ -204,7 +199,7 @@ export function AppShell({
             aria-modal="true"
             aria-label="Боковое меню"
             tabIndex={-1}
-            className="absolute inset-y-0 left-0 flex w-[min(88vw,320px)] flex-col border-r border-control-border bg-bg-subtle outline-none"
+            className="absolute inset-y-0 left-0 flex w-[min(88vw,320px)] flex-col overflow-hidden rounded-r-card border-y border-r border-border/70 bg-bg-subtle/95 backdrop-blur-2xl outline-none"
           >
             <Sidebar
               activeSection={activeSection}
@@ -223,8 +218,6 @@ export function AppShell({
               tags={tags}
               libraryCount={libraryCount}
               favoritesCount={favoritesCount}
-              storageInfo={storageInfo}
-              storageLoading={storageLoading}
               account={account}
               onOpenAccount={
                 onOpenAccount

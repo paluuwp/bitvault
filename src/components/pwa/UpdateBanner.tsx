@@ -1,5 +1,5 @@
 import { RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { Button, Led } from '@/components/ui'
 import { usePwaUpdate } from '@/hooks/usePwaUpdate'
 import type { UpdateStore } from '@/pwa/updateStore'
 
@@ -25,7 +25,7 @@ export function UpdateBanner({ store, blocked = false }: UpdateBannerProps) {
     : 'Обновите страницу — библиотека и файлы останутся на месте.'
 
   return (
-    <div className="flex shrink-0 flex-col gap-2 border-l-2 border-accent bg-accent/10 px-4 py-2.5 sm:flex-row sm:items-center sm:gap-4 sm:px-content">
+    <div className="flex shrink-0 flex-col gap-2 border-l-2 border-l-accent border-b border-b-divider bg-accent/10 px-4 py-2.5 sm:flex-row sm:items-center sm:gap-4 sm:px-content">
       <div
         role="status"
         aria-live="polite"
@@ -33,7 +33,10 @@ export function UpdateBanner({ store, blocked = false }: UpdateBannerProps) {
       >
         <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
         <div className="min-w-0 break-words">
-          <p className="text-body font-medium text-text">Доступна новая версия BitVault</p>
+          <p className="flex items-center gap-2 text-body font-medium text-text">
+            <Led tone="accent" size="xs" />
+            Доступна новая версия BitVault
+          </p>
           <p className="text-caption text-text-muted">{description}</p>
         </div>
       </div>

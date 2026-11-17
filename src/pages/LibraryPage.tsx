@@ -1,7 +1,7 @@
 import { clsx } from 'clsx'
 import { AlertTriangle, Music, Plus, RotateCcw, Search } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Button, EmptyState, Spinner } from '@/components/ui'
+import { Button, EmptyState, Led, Spinner } from '@/components/ui'
 import { TrackGrid } from '@/components/library/TrackGrid'
 import { TrackList } from '@/components/library/TrackList'
 import { formatTrackCount } from '@/components/library/format'
@@ -80,19 +80,28 @@ export function LibraryPage({
       aria-busy={loading || undefined}
       className={clsx('flex flex-col gap-5', className)}
     >
-      <header className="flex flex-wrap items-baseline gap-3">
-        <h1 id="library-title" className="text-display text-text">
-          {title}
-        </h1>
-        <span className="font-mono text-mono-badge uppercase text-text-subtle">
-          {formatTrackCount(tracks.length)}
-        </span>
-        {loading && total > 0 && (
-          <span className="inline-flex items-center gap-1.5 text-caption text-text-muted">
-            <Spinner size="sm" label="Обновление библиотеки" />
-            Обновление…
+      <header className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 text-micro text-text-muted uppercase">
+            <Led tone="accent" size="xs" />
+            Коллекция
           </span>
-        )}
+          <span className="fl-inset inline-flex items-center rounded-chip border border-border px-2 py-1 font-mono text-mono-badge text-text-muted uppercase">
+            {formatTrackCount(tracks.length)}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-baseline gap-3">
+          <h1 id="library-title" className="text-display text-text">
+            {title}
+          </h1>
+          {loading && total > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-caption text-text-muted">
+              <Spinner size="sm" label="Обновление библиотеки" />
+              Обновление…
+            </span>
+          )}
+        </div>
       </header>
 
       {toolbar && total > 0 && !initialLoading && !blockingError && <div>{toolbar}</div>}

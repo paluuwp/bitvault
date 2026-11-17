@@ -5,6 +5,7 @@ import { useBlobUrl } from '@/hooks/useBlobUrl'
 import { Badge, DropdownMenu, Spinner } from '@/components/ui'
 import type { Track } from '@/types/models'
 import { FavoriteButton } from './FavoriteButton'
+import { KeyReadout } from './KeyReadout'
 import { formatDuration, formatTrackDate, getCoverGradient, getCoverLetter } from './format'
 import { buildTrackMenuItems } from './trackMenu'
 import type { TrackMenuAction } from './trackMenu'
@@ -62,15 +63,28 @@ export function TrackRow({
       aria-busy={loading || undefined}
       onClick={handleRowClick}
       className={clsx(
-        'group relative flex min-h-16 items-center gap-3 border-b border-border px-3 py-2.5 transition-colors last:border-b-0',
-        selected ? 'bg-surface-active' : 'hover:bg-surface-raised focus-within:bg-surface-raised',
+        'group relative isolate flex min-h-16 items-center gap-3 border-b border-divider px-3 py-2 last:border-b-0',
         disabled && 'opacity-60',
         onOpen && 'cursor-pointer',
         className,
       )}
     >
+      {/* Подложка выделения/наведения: скруглённая вставка вместо прямоугольной заливки */}
+      <span
+        aria-hidden="true"
+        className={clsx(
+          'pointer-events-none absolute inset-x-1 inset-y-0.5 -z-10 rounded-control transition-opacity motion-reduce:transition-none',
+          selected
+            ? 'bg-gradient-to-r from-accent/10 via-surface-active/70 to-surface-active/40 opacity-100'
+            : 'bg-surface-raised/50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
+        )}
+      />
+
       {selected && (
-        <span aria-hidden="true" className="absolute inset-y-0 left-0 w-0.5 bg-accent" />
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-2.5 left-2 w-0.5 rounded-full bg-accent shadow-[0_0_8px_rgb(247_147_30/0.5)]"
+        />
       )}
 
       {index !== undefined && (
@@ -143,9 +157,9 @@ export function TrackRow({
         </p>
       </div>
 
-      <Badge mono variant="neutral" className="max-sm:hidden shrink-0">
-        {track.bpm === null ? 'BPM —' : `${track.bpm} BPM`}
-      </Badge>
+      <div className="hidden shrink-0 sm:block">
+        <KeyReadout bpm={track.bpm} musicalKey={track.musicalKey} />
+      </div>
 
       {hasAudio ? (
         <span className="hidden w-12 shrink-0 text-right font-mono text-mono-badge text-text-muted sm:inline">

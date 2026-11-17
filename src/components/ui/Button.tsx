@@ -3,7 +3,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { Spinner } from './Spinner'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
-export type ButtonSize = 'sm' | 'md'
+export type ButtonSize = 'sm' | 'md' | 'toolbar'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
@@ -16,7 +16,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-accent text-accent-ink shadow-bevel-raised hover:bg-accent-hover active:bg-accent-pressed',
+    'bg-gradient-to-b from-accent-hover to-accent text-accent-ink shadow-bevel-raised hover:from-accent hover:to-accent-pressed active:from-accent active:to-accent-pressed',
   secondary:
     'border border-control-border bg-surface-raised text-text hover:border-control-border-hover hover:bg-surface-hover',
   ghost: 'text-text-muted hover:bg-surface-hover hover:text-text',
@@ -26,6 +26,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 const sizeClasses: Record<ButtonSize, string> = {
   sm: 'h-10 px-3 text-body',
   md: 'h-11 px-4 text-body',
+  toolbar: 'h-8 px-3 text-caption',
 }
 
 export function Button({

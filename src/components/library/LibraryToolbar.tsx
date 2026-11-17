@@ -1,6 +1,6 @@
 import { clsx } from 'clsx'
 import { ArrowDownNarrowWide, ArrowUpNarrowWide, Heart, RotateCcw } from 'lucide-react'
-import { Button, IconButton, Select } from '@/components/ui'
+import { IconButton, Select } from '@/components/ui'
 import type { TagStat } from '@/hooks/useLibraryFilters'
 import type { SortDirection, SortField } from '@/types/models'
 import { formatTrackCount } from './format'
@@ -44,32 +44,30 @@ export function LibraryToolbar({
     : formatTrackCount(resultCount)
 
   return (
-    <div className="fl-panel flex flex-col gap-3 rounded-card px-3 py-2">
+    <div className="fl-panel relative flex flex-col gap-2.5 overflow-hidden rounded-card px-3 py-2 pt-3">
+      <span aria-hidden="true" className="fl-groove absolute inset-x-0 top-0" />
+
       <div className="flex flex-wrap items-center gap-2">
         {showFavoritesFilter && (
-          <Button
-            variant={onlyFavorites ? 'primary' : 'secondary'}
-            size="sm"
+          <button
+            type="button"
             aria-pressed={onlyFavorites}
-            leftIcon={
-              <span className="inline-flex items-center gap-1.5">
-                <Heart
-                  className={onlyFavorites ? 'h-4 w-4 fill-current' : 'h-4 w-4'}
-                  aria-hidden="true"
-                />
-                <span
-                  aria-hidden="true"
-                  className={clsx(
-                    'fl-led',
-                    onlyFavorites ? 'text-favorite' : 'text-text-subtle',
-                  )}
-                />
-              </span>
-            }
             onClick={onToggleOnlyFavorites}
+            className="fl-key text-caption"
           >
+            <Heart
+              className={clsx('h-4 w-4', onlyFavorites && 'fill-current')}
+              aria-hidden="true"
+            />
+            <span
+              aria-hidden="true"
+              className={clsx(
+                'fl-led',
+                onlyFavorites ? 'text-favorite' : 'text-text-subtle',
+              )}
+            />
             Только избранное
-          </Button>
+          </button>
         )}
 
         <span className="text-caption text-text-muted" aria-live="polite">
@@ -77,15 +75,14 @@ export function LibraryToolbar({
         </span>
 
         {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto"
-            leftIcon={<RotateCcw className="h-4 w-4" aria-hidden="true" />}
+          <button
+            type="button"
             onClick={onResetFilters}
+            className="fl-key ml-auto text-caption text-text-muted"
           >
+            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
             Сбросить фильтры
-          </Button>
+          </button>
         )}
       </div>
 
@@ -95,7 +92,7 @@ export function LibraryToolbar({
           aria-label="Сортировка"
           value={sort}
           onChange={(event) => onSortChange(event.target.value as SortField)}
-          containerClassName="min-w-0 flex-1 [&_select]:w-full"
+          containerClassName="min-w-0 flex-1 [&_select]:h-8 [&_select]:w-full [&_select]:py-0 [&_select]:pr-8 [&_select]:pl-2 [&_select]:text-caption"
         >
           <option value="createdAt">Сначала новые</option>
           <option value="name">По названию</option>
@@ -113,7 +110,7 @@ export function LibraryToolbar({
               ? 'По возрастанию — нажмите, чтобы изменить'
               : 'По убыванию — нажмите, чтобы изменить'
           }
-          variant="secondary"
+          variant="key"
           onClick={onToggleSortDirection}
         >
           {sortDirection === 'asc' ? (

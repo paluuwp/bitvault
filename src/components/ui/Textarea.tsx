@@ -37,7 +37,7 @@ export function Textarea({
         aria-invalid={error ? true : undefined}
         aria-describedby={descriptionId}
         className={clsx(
-          'min-h-24 w-full resize-y rounded-control border bg-bg-subtle px-3 py-2.5 text-body text-text shadow-sunken transition-colors placeholder:text-text-subtle disabled:cursor-not-allowed disabled:opacity-50',
+          'min-h-24 w-full resize-y rounded-control border bg-bg-subtle/70 px-3 py-2.5 text-body text-text shadow-sunken transition-colors placeholder:text-text-subtle disabled:cursor-not-allowed disabled:opacity-50',
           error
             ? 'border-danger'
             : 'border-control-border hover:border-control-border-hover focus:border-accent',

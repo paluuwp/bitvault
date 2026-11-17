@@ -39,7 +39,7 @@ export function Select({
           aria-invalid={error ? true : undefined}
           aria-describedby={descriptionId}
           className={clsx(
-            'h-11 w-full appearance-none rounded-control border bg-bg-subtle pr-9 pl-3 text-body text-text shadow-sunken transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+            'h-11 w-full appearance-none rounded-control border bg-bg-subtle/70 pr-9 pl-3 text-body text-text shadow-sunken transition-colors disabled:cursor-not-allowed disabled:opacity-50',
             error
               ? 'border-danger'
               : 'border-control-border hover:border-control-border-hover focus:border-accent',

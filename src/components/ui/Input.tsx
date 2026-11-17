@@ -46,7 +46,7 @@ export function Input({
           aria-invalid={error ? true : undefined}
           aria-describedby={descriptionId}
           className={clsx(
-            'h-11 w-full rounded-control border bg-bg-subtle text-body text-text shadow-sunken transition-colors placeholder:text-text-subtle disabled:cursor-not-allowed disabled:opacity-50',
+            'h-11 w-full rounded-control border bg-bg-subtle/70 text-body text-text shadow-sunken transition-colors placeholder:text-text-subtle disabled:cursor-not-allowed disabled:opacity-50',
             leadingIcon ? 'pr-3 pl-10' : 'px-3',
             error
               ? 'border-danger'

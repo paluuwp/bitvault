@@ -1,9 +1,7 @@
 import { clsx } from 'clsx'
 import { Heart, Library, LogIn, Settings, X } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Button, IconButton, ProgressBar } from '@/components/ui'
-import { formatBytes } from '@/lib/format'
-import type { StorageInfo } from '@/types/models'
+import { Button, IconButton, Led } from '@/components/ui'
 import type { AppSection } from './navigation'
 
 export interface SidebarTag {
@@ -28,8 +26,6 @@ export interface SidebarProps {
   tags?: SidebarTag[]
   libraryCount?: number
   favoritesCount?: number
-  storageInfo?: StorageInfo | null
-  storageLoading?: boolean
   /** Блок аккаунта над «Настройками»; без него блок не рендерится. */
   account?: SidebarAccount
   onOpenAccount?: () => void
@@ -66,34 +62,23 @@ export function Sidebar({
   tags = [],
   libraryCount = 0,
   favoritesCount = 0,
-  storageInfo = null,
-  storageLoading = false,
   account,
   onOpenAccount,
   className,
 }: SidebarProps) {
-  const usage = storageInfo?.usage ?? null
-  const quota = storageInfo?.quota ?? null
-  const storagePercent =
-    usage !== null && quota !== null && quota > 0
-      ? Math.min((usage / quota) * 100, 100)
-      : null
-  const storageWarning = storagePercent !== null && storagePercent > 80
-  const storageSummary =
-    usage !== null && quota !== null
-      ? `${formatBytes(usage)} из ${formatBytes(quota)}`
-      : storageLoading
-        ? '…'
-        : 'Нет данных'
-
   return (
-    <div className={clsx('flex h-full min-h-0 flex-col bg-bg-subtle', className)}>
-      <div className="flex h-topbar shrink-0 items-center justify-between gap-2 border-b border-border px-4">
+    <div
+      className={clsx(
+        'flex h-full min-h-0 flex-col bg-gradient-to-b from-surface-chrome/40 via-bg-subtle/45 to-bg/60 backdrop-blur-2xl',
+        className,
+      )}
+    >
+      <div className="flex h-topbar shrink-0 items-center justify-between gap-2 border-b border-divider px-4">
         <div className="flex items-center gap-2">
           <span className="font-mono text-h2 font-semibold tracking-[0.16em] uppercase text-text">
             BITVAULT
           </span>
-          <span aria-hidden="true" className="fl-led text-accent" />
+          <Led tone="accent" />
         </div>
         {onClose && (
           <IconButton label="Закрыть меню" variant="ghost" onClick={onClose}>
@@ -116,19 +101,19 @@ export function Sidebar({
                 className={clsx(
                   'relative flex min-h-11 w-full items-center gap-3 rounded-control px-3 py-2.5 text-body transition-colors',
                   isActive
-                    ? 'bg-surface-raised text-text'
+                    ? 'bg-gradient-to-r from-surface-raised to-surface-raised/55 text-text shadow-bevel'
                     : 'text-text-muted hover:bg-surface-hover hover:text-text',
                 )}
               >
                 {isActive && (
                   <span
                     aria-hidden="true"
-                    className="absolute top-2 bottom-2 left-0 w-0.5 bg-accent"
+                    className="absolute top-2 bottom-2 left-0 w-0.5 rounded-r-chip bg-accent shadow-[0_0_10px_rgb(247_147_30/0.55)]"
                   />
                 )}
                 {item.icon}
                 <span className="truncate">{item.label}</span>
-                <span className="ml-auto shrink-0 font-mono text-mono-badge text-text-muted">
+                <span className="ml-auto shrink-0 rounded-chip bg-bg-subtle px-1.5 py-0.5 font-mono text-micro text-text-muted">
                   {count}
                 </span>
               </button>
@@ -137,9 +122,8 @@ export function Sidebar({
         </div>
 
         <div className="mt-6">
-          <h2 className="px-3 pb-2 text-caption tracking-[0.08em] text-text-muted uppercase">
-            Теги
-          </h2>
+          <div className="fl-groove mx-3 mb-2" aria-hidden="true" />
+          <h2 className="px-3 pb-2 text-micro text-text-muted uppercase">Теги</h2>
           {tags.length === 0 ? (
             <p className="px-3 text-caption text-text-muted">
               Теги появятся после добавления битов.
@@ -165,13 +149,13 @@ export function Sidebar({
         </div>
       </nav>
 
-      <div className="shrink-0 space-y-3 border-t border-border p-4">
+      <div className="shrink-0 space-y-2 border-t border-divider p-3">
         {account && onOpenAccount ? (
           account.status === 'authenticated' ? (
             <button
               type="button"
               onClick={onOpenAccount}
-              className="flex min-h-11 w-full items-center gap-2 rounded-control border border-border bg-surface-raised px-3 py-2 text-left transition-colors hover:bg-surface-hover"
+              className="flex min-h-11 w-full items-center gap-2 rounded-control border border-border bg-gradient-to-b from-surface-raised to-surface-raised/60 px-2.5 py-1.5 text-left transition-colors hover:bg-surface-hover"
             >
               <span
                 aria-hidden="true"
@@ -202,39 +186,6 @@ export function Sidebar({
             </Button>
           )
         ) : null}
-        <div className="fl-inset space-y-1.5 rounded-control p-3">
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            title={
-              storagePercent !== null
-                ? `Занято ${Math.round(storagePercent)}% — открыть настройки`
-                : 'Открыть настройки хранилища'
-            }
-            className="flex min-h-10 w-full items-center justify-between gap-2 rounded-control py-1 text-left"
-          >
-            <span className="text-caption text-text-muted">Хранилище</span>
-            <span
-              className={clsx(
-                'truncate font-mono text-mono-badge',
-                storageWarning ? 'text-warning' : 'text-text-muted',
-              )}
-            >
-              {storageSummary}
-            </span>
-          </button>
-          {storagePercent !== null && (
-            <ProgressBar
-              value={storagePercent}
-              label="Использование локального хранилища"
-            />
-          )}
-          <p className={clsx('text-caption', storageWarning ? 'text-warning' : 'text-text-muted')}>
-            {storageWarning
-              ? 'Заполнено больше 80% — освободите место или экспортируйте библиотеку.'
-              : 'Данные хранятся в браузере'}
-          </p>
-        </div>
         <Button
           variant="ghost"
           fullWidth

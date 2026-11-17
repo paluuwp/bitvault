@@ -18,6 +18,25 @@
   --color-control-border: #6e6e75;
   --color-control-border-hover: #8a8a92;
 
+  /* Хром тулбар-полос и клавиш в духе FL */
+  --color-toolbar: #151518;
+  --color-surface-chrome: #18181b;
+  --color-control: #26262b;
+  --color-control-hover: #303037;
+  --color-control-active: #3a3a42;
+  --color-key-border: #3b3b42;
+  --color-key-border-hover: #55555e;
+  --color-groove: #08080a;
+  --color-divider: #34343a;
+  --color-hairline: rgb(255 255 255 / 0.07);
+
+  /* Стеклянные слои оболочки: полупрозрачные подложки поверх градиента фона */
+  --color-glass-toolbar: rgb(21 21 24 / 0.72);
+  --color-glass-sidebar: rgb(17 17 19 / 0.55);
+  --color-glass-panel: rgb(27 27 27 / 0.45);
+  --color-glass-raised: rgb(34 34 37 / 0.55);
+  --color-glass-inset: rgb(10 10 13 / 0.5);
+
   /* Текст */
   --color-text: #ededef;
   --color-text-muted: #a4a4aa;
@@ -43,6 +62,13 @@
   --color-led-amber: #ffb547;
   --color-led-red: #ff5a5a;
   --color-led-cyan: #4fd1e0;
+  --color-led-off: #3a3a3f;
+
+  /* LCD-панели: утопленный фон и тёплые песочные цифры */
+  --color-lcd-bg: #08080a;
+  --color-lcd-text: #ffc98a;
+  --color-lcd-text-dim: #b98a58;
+  --color-lcd-border: #000000;
 
   /* Цвета обложек — это данные, значения не меняем */
   --color-cover-lime: #d8ff3e;
@@ -88,12 +114,30 @@
   --text-label--font-weight: 600;
   --text-label--letter-spacing: 0.08em;
 
-  /* Радиусы: почти прямые углы */
-  --radius-card: 4px;
-  --radius-control: 3px;
-  --radius-modal: 4px;
-  --radius-chip: 2px;
-  --radius-led: 1px;
+  /* Микро-подписи групп и LCD (только для служебных надписей) */
+  --text-micro: 0.625rem;
+  --text-micro--line-height: 0.75rem;
+  --text-micro--font-weight: 600;
+  --text-micro--letter-spacing: 0.14em;
+
+  --text-readout: 1.375rem;
+  --text-readout--line-height: 1.5rem;
+  --text-readout--font-weight: 500;
+  --text-readout--letter-spacing: 0.02em;
+
+  --text-lcd: 1.75rem;
+  --text-lcd--line-height: 1.75rem;
+  --text-lcd--font-weight: 500;
+  --text-lcd--letter-spacing: 0.04em;
+
+  /* Радиусы: мягкие скругления вместо прямых углов */
+  --radius-card: 14px;
+  --radius-control: 12px;
+  --radius-modal: 18px;
+  --radius-chip: 9px;
+  --radius-led: 4px;
+  --radius-key: 10px;
+  --radius-lcd: 6px;
 
   /* Тени: bevel и жёсткие поповеры вместо мягких ореолов */
   --shadow-bevel: inset 0 1px 0 0 rgb(255 255 255 / 0.05), inset 0 -1px 0 0 rgb(0 0 0 / 0.55);
@@ -102,15 +146,26 @@
   --shadow-popover: 0 12px 28px -8px rgb(0 0 0 / 0.75), 0 0 0 1px rgb(0 0 0 / 0.55);
   --shadow-led: 0 0 6px 0 currentColor;
 
+  /* Клавиши тулбара и LCD */
+  --shadow-key: inset 0 1px 0 rgb(255 255 255 / 0.08), inset 0 -1px 0 rgb(0 0 0 / 0.70),
+    0 1px 1px rgb(0 0 0 / 0.45);
+  --shadow-key-pressed: inset 0 2px 5px rgb(0 0 0 / 0.65), inset 0 -1px 0 rgb(255 255 255 / 0.04);
+  --shadow-key-active: inset 0 1px 0 rgb(255 255 255 / 0.14), 0 0 0 1px var(--color-accent),
+    0 0 10px rgb(247 147 30 / 0.22);
+  --shadow-lcd: inset 0 2px 8px rgb(0 0 0 / 0.85), inset 0 0 0 1px rgb(0 0 0 / 0.75),
+    0 1px 0 rgb(255 255 255 / 0.04);
+  --shadow-groove: inset 0 1px 0 rgb(0 0 0 / 0.90), 0 1px 0 rgb(255 255 255 / 0.05);
+
   /* Motion: только цвет, границы и прозрачность */
   --default-transition-duration: 120ms;
   --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 
   /* Каркас */
   --spacing-sidebar: 14.5rem;
-  --spacing-topbar: 3.25rem;
-  --spacing-player: 4.5rem;
+  --spacing-topbar: 3rem;
+  --spacing-player: 5.5rem;
   --spacing-content: 1.25rem;
+  --spacing-key: 2rem;
 }
 
 @layer base {
@@ -202,19 +257,23 @@
 @layer components {
   /* Панели в духе FL Studio */
   .fl-panel {
-    background-color: var(--color-surface);
+    background-color: var(--color-glass-panel);
+    background-image: linear-gradient(165deg, rgb(255 255 255 / 0.03), transparent 45%);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-bevel);
+    backdrop-filter: blur(14px);
   }
 
   .fl-panel-raised {
-    background-color: var(--color-surface-raised);
+    background-color: var(--color-glass-raised);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.035), transparent 60%);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-bevel-raised);
+    backdrop-filter: blur(14px);
   }
 
   .fl-inset {
-    background-color: var(--color-bg-subtle);
+    background-color: var(--color-glass-inset);
     box-shadow: var(--shadow-sunken);
   }
 
@@ -237,9 +296,144 @@
     display: inline-block;
     width: 6px;
     height: 6px;
-    border-radius: var(--radius-led);
+    border-radius: 50%;
     background-color: currentColor;
-    box-shadow: var(--shadow-led);
+    box-shadow: var(--shadow-led), inset 0 0 1px rgb(0 0 0 / 0.6);
+  }
+
+  .fl-led--off {
+    color: var(--color-led-off);
+    box-shadow: inset 0 0 1px rgb(0 0 0 / 0.6);
+  }
+
+  /* Плавающая тулбар-панель: стекло со скруглёнными углами вместо полосы во всю ширину */
+  .fl-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid rgb(255 255 255 / 0.08);
+    border-radius: var(--radius-card);
+    background-color: var(--color-glass-toolbar);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.05), transparent 65%);
+    backdrop-filter: blur(18px) saturate(1.1);
+    box-shadow:
+      inset 0 1px 0 var(--color-hairline),
+      inset 0 -1px 0 rgb(247 147 30 / 0.06),
+      0 18px 36px -30px rgb(0 0 0 / 0.95);
+  }
+
+  /* Клавиша: лёгкий бевел вместо скевоморфизма */
+  .fl-key {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    min-height: var(--spacing-key);
+    padding: 0 0.5rem;
+    border: 1px solid var(--color-key-border);
+    border-radius: var(--radius-key);
+    background-color: var(--color-control);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.045), transparent 55%);
+    color: var(--color-text);
+    box-shadow: var(--shadow-key);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    line-height: 1;
+    transition:
+      background-color var(--default-transition-duration) var(--default-transition-timing-function),
+      border-color var(--default-transition-duration) var(--default-transition-timing-function),
+      box-shadow var(--default-transition-duration) var(--default-transition-timing-function),
+      color var(--default-transition-duration) var(--default-transition-timing-function);
+  }
+
+  .fl-key:hover:not(:disabled) {
+    background-color: var(--color-control-hover);
+    border-color: var(--color-key-border-hover);
+  }
+
+  .fl-key:active:not(:disabled) {
+    background-color: var(--color-control-active);
+    box-shadow: var(--shadow-key-pressed);
+  }
+
+  .fl-key:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .fl-key[aria-pressed='true'] {
+    background-color: var(--color-accent-dim);
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    box-shadow: var(--shadow-key-active);
+  }
+
+  .fl-key--accent {
+    background-color: var(--color-accent);
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.22), transparent 60%);
+    border-color: var(--color-accent-pressed);
+    color: var(--color-accent-ink);
+    box-shadow: var(--shadow-key), 0 0 16px rgb(247 147 30 / 0.25);
+  }
+
+  .fl-key--accent:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+  }
+
+  .fl-key--accent:active:not(:disabled) {
+    background-color: var(--color-accent-pressed);
+  }
+
+  .fl-key--icon {
+    width: var(--spacing-key);
+    min-width: var(--spacing-key);
+    padding: 0;
+  }
+
+  /* Утопленный LCD-дисплей с песочными цифрами */
+  .fl-lcd {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: var(--color-lcd-bg);
+    border: 1px solid var(--color-lcd-border);
+    border-radius: var(--radius-lcd);
+    box-shadow: var(--shadow-lcd);
+    color: var(--color-lcd-text);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .fl-lcd__label {
+    font-size: var(--text-micro);
+    font-weight: var(--text-micro--font-weight);
+    letter-spacing: var(--text-micro--letter-spacing);
+    text-transform: uppercase;
+    color: var(--color-lcd-text-dim);
+  }
+
+  .fl-lcd__value {
+    font-size: var(--text-readout);
+    font-weight: var(--text-readout--font-weight);
+    letter-spacing: var(--text-readout--letter-spacing);
+    color: var(--color-lcd-text);
+    white-space: nowrap;
+  }
+
+  .fl-divider-v {
+    width: 1px;
+    flex: none;
+    align-self: stretch;
+    background-color: var(--color-divider);
+    box-shadow: 1px 0 0 rgb(255 255 255 / 0.03);
+  }
+
+  .fl-groove {
+    height: 1px;
+    background-image: linear-gradient(90deg, transparent, rgb(0 0 0 / 0.9), transparent);
+    box-shadow: var(--shadow-groove);
   }
 
   .fl-meter-fill {
@@ -282,5 +476,23 @@
 @media (pointer: coarse) {
   .player-slider {
     height: 2.5rem;
+  }
+  .fl-key {
+    min-height: 2.75rem;
+  }
+
+  .fl-key--icon {
+    width: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .fl-toolbar select,
+  .fl-toolbar input,
+  .fl-panel select {
+    min-height: 2.75rem;
+  }
+
+  .fl-toolbar button {
+    min-height: 2.75rem;
   }
 }

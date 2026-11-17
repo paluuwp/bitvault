@@ -162,7 +162,7 @@ export function TrackMetaForm({
             {form.tags.map((tag) => (
               <li
                 key={tag}
-                className="inline-flex min-h-10 max-w-full items-center gap-1 rounded-chip border border-border bg-bg-subtle py-0.5 pr-0.5 pl-2.5 text-caption text-text-muted sm:min-h-0 sm:pr-1"
+                className="inline-flex min-h-10 max-w-full items-center gap-1 rounded-chip border border-divider bg-bg-subtle py-0.5 pr-0.5 pl-2.5 text-caption text-text-muted sm:min-h-0 sm:pr-1"
               >
                 <span className="min-w-0 truncate">#{tag}</span>
                 <button

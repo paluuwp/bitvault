@@ -6,9 +6,9 @@ export type IconButtonVariant =
   | 'secondary'
   | 'primary'
   | 'danger'
-  | 'play'
-  | 'transport'
-export type IconButtonSize = 'sm' | 'md'
+  | 'key'
+  | 'key-accent'
+export type IconButtonSize = 'sm' | 'md' | 'toolbar'
 
 export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> {
   /** Обязательная доступная подпись; она же используется как title-подсказка. */
@@ -27,20 +27,20 @@ const variantClasses: Record<IconButtonVariant, string> = {
     'border border-control-border bg-surface-raised text-text hover:border-control-border-hover hover:bg-surface-hover',
   primary: 'bg-accent text-accent-ink hover:bg-accent-hover active:bg-accent-pressed',
   danger: 'bg-danger text-danger-ink hover:bg-danger/90',
-  play: 'bg-play text-play-ink hover:bg-play/90 [&_svg]:fill-current',
-  transport:
-    'border border-control-border bg-surface-raised text-text shadow-bevel-raised hover:bg-surface-hover',
+  key: 'fl-key fl-key--icon text-text',
+  'key-accent': 'fl-key fl-key--accent fl-key--icon text-accent-ink',
 }
 
 const sizeClasses: Record<IconButtonSize, string> = {
   sm: 'h-10 w-10',
   md: 'h-11 w-11',
+  toolbar: 'h-8 w-8',
 }
 
 export function IconButton({
   label,
   variant = 'ghost',
-  size = 'sm',
+  size = variant === 'key' || variant === 'key-accent' ? 'toolbar' : 'sm',
   active = false,
   tooltip,
   className,
@@ -56,8 +56,8 @@ export function IconButton({
       title={tooltip ?? label}
       className={clsx(
         'inline-flex shrink-0 items-center justify-center rounded-control transition-colors disabled:pointer-events-none disabled:opacity-40',
-        active ? 'border border-accent/60 bg-accent-dim text-accent' : variantClasses[variant],
         sizeClasses[size],
+        active ? 'border border-accent/60 bg-accent-dim text-accent' : variantClasses[variant],
         className,
       )}
     >

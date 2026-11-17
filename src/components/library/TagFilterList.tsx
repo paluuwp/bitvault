@@ -1,11 +1,6 @@
 import { clsx } from 'clsx'
 import type { TagStat } from '@/hooks/useLibraryFilters'
 
-const chipClasses =
-  'inline-flex max-w-full items-center truncate rounded-chip border px-2 py-0.5 text-caption whitespace-nowrap'
-const chipActiveClasses = 'border-accent bg-accent/10 text-accent'
-const chipIdleClasses = 'border-border bg-bg-subtle text-text-muted'
-
 export interface TagFilterListProps {
   tags: TagStat[]
   activeTag: string | null
@@ -22,22 +17,18 @@ export function TagFilterList({ tags, activeTag, onTagSelect, className }: TagFi
     <div
       role="group"
       aria-label="Фильтр по тегам"
-      className={clsx('flex max-h-28 flex-wrap items-center gap-2 overflow-y-auto pr-1', className)}
+      className={clsx(
+        'fl-inset flex max-h-28 flex-wrap items-center gap-1.5 overflow-y-auto rounded-control border border-border px-1.5 py-1',
+        className,
+      )}
     >
       <button
         type="button"
         aria-pressed={activeTag === null}
         onClick={() => onTagSelect(null)}
-        className="inline-flex min-h-10 max-w-full items-center transition-opacity hover:opacity-80"
+        className="fl-key text-caption"
       >
-        <span
-          className={clsx(
-            chipClasses,
-            activeTag === null ? chipActiveClasses : chipIdleClasses,
-          )}
-        >
-          Все теги
-        </span>
+        Все теги
       </button>
 
       {tags.map((tag) => {
@@ -50,18 +41,10 @@ export function TagFilterList({ tags, activeTag, onTagSelect, className }: TagFi
             type="button"
             aria-pressed={active}
             onClick={() => onTagSelect(active ? null : tag.name)}
-            className="inline-flex min-h-10 max-w-full items-center transition-opacity hover:opacity-80"
+            className="fl-key max-w-full text-caption"
           >
-            <span
-              className={clsx(
-                chipClasses,
-                'gap-1.5',
-                active ? chipActiveClasses : chipIdleClasses,
-              )}
-            >
-              <span className="truncate">#{tag.name}</span>
-              <span className="font-mono text-mono-badge opacity-70">{tag.count}</span>
-            </span>
+            <span className="min-w-0 truncate">#{tag.name}</span>
+            <span className="font-mono text-mono-badge opacity-70">{tag.count}</span>
           </button>
         )
       })}

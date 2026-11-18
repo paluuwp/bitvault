@@ -18,6 +18,7 @@ const MAX_NAME_LENGTH = 100
 const MAX_BPM = 400
 const MIN_BPM = 20
 const MAX_GENRE_LENGTH = 40
+const MAX_AUTHOR_LENGTH = 120
 const MAX_TAGS = 10
 const MAX_TAG_LENGTH = 24
 const MAX_NOTES_LENGTH = 2000
@@ -89,6 +90,7 @@ export interface TrackDto {
   bpm: number | null
   musicalKey: string | null
   genre: string | null
+  author: string | null
   tags: string[]
   notes: string
   color: string
@@ -125,6 +127,8 @@ interface NormalizedTrack {
   bpm: number | null
   musicalKey: string | null
   genre: string | null
+  /** undefined — поле не передано, сохранённое значение не затирается. */
+  author?: string | null
   tags: string[]
   notes: string
   color: string
@@ -169,6 +173,7 @@ function toTrackDto(track: TrackWithFiles): TrackDto {
     bpm: track.bpm,
     musicalKey: track.musicalKey,
     genre: track.genre,
+    author: track.author,
     tags: [...track.tags],
     notes: track.notes,
     color: track.color,
@@ -236,6 +241,17 @@ function normalizeGenre(value: unknown): string | null {
   if (!trimmed) return null
   if (trimmed.length > MAX_GENRE_LENGTH) {
     badRequest(`Жанр не должен превышать ${MAX_GENRE_LENGTH} символов.`)
+  }
+  return trimmed
+}
+
+function normalizeAuthor(value: unknown): string | null {
+  if (value === null || value === undefined) return null
+  if (typeof value !== 'string') badRequest('Автор должен быть строкой.')
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  if (trimmed.length > MAX_AUTHOR_LENGTH) {
+    badRequest(`Автор не должен превышать ${MAX_AUTHOR_LENGTH} символов.`)
   }
   return trimmed
 }
@@ -346,6 +362,8 @@ function normalizeTrackBody(body: Record<string, unknown>, nowIso: string): Norm
     bpm: normalizeBpm(body.bpm),
     musicalKey: normalizeMusicalKey(body.musicalKey),
     genre: normalizeGenre(body.genre),
+    // Старые клиенты не шлют author: undefined → значение в БД не трогаем.
+    ...(body.author === undefined ? {} : { author: normalizeAuthor(body.author) }),
     tags: normalizeTags(body.tags),
     notes: normalizeNotes(body.notes),
     color: normalizeColor(body.color),

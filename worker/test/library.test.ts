@@ -349,6 +349,7 @@ describe('PUT /libraries/:libraryId/tracks/:trackId', () => {
       bpm: 128,
       musicalKey: 'C#m',
       genre: 'Techno',
+      author: null,
       tags: ['techno', 'bass'],
       notes: 'заметка',
       color: '#8B5CF6',
@@ -505,6 +506,8 @@ describe('PUT /libraries/:libraryId/tracks/:trackId', () => {
       { name: 'Track', bpm: 'fast' },
       { name: 'Track', musicalKey: 'H' },
       { name: 'Track', genre: 'g'.repeat(41) },
+      { name: 'Track', author: 'a'.repeat(121) },
+      { name: 'Track', author: 42 },
       { name: 'Track', tags: Array.from({ length: 11 }, (_, index) => `tag${index}`) },
       { name: 'Track', tags: ['x'.repeat(25)] },
       { name: 'Track', notes: 'n'.repeat(2001) },
@@ -528,6 +531,45 @@ describe('PUT /libraries/:libraryId/tracks/:trackId', () => {
     }
 
     expect((await listTracks(context.harness, context.token, context.libraryId)).tracks).toHaveLength(0)
+  })
+
+  it('author: сохраняется с trim, читается через GET, пустая строка → null', async () => {
+    const context = await setup()
+    const put = (body: Record<string, unknown>) =>
+      putTrack(context.harness, context.token, context.libraryId, 'trk-a', body)
+
+    const created = await readJson<TrackDto>(await put({ name: 'T', author: '  DJ Name  ' }))
+    expect(created.author).toBe('DJ Name')
+
+    const listed = await listTracks(context.harness, context.token, context.libraryId)
+    expect(listed.tracks[0]?.author).toBe('DJ Name')
+
+    const edge = await readJson<TrackDto>(await put({ name: 'T', author: 'x'.repeat(120) }))
+    expect(edge.author).toBe('x'.repeat(120))
+
+    const emptied = await readJson<TrackDto>(await put({ name: 'T', author: '   ' }))
+    expect(emptied.author).toBeNull()
+
+    await put({ name: 'T', author: 'Again' })
+    const cleared = await readJson<TrackDto>(await put({ name: 'T', author: null }))
+    expect(cleared.author).toBeNull()
+  })
+
+  it('author: старый клиент без поля — создание → null, обновление не затирает значение', async () => {
+    const context = await setup()
+    const put = (id: string, body: Record<string, unknown>) =>
+      putTrack(context.harness, context.token, context.libraryId, id, body)
+
+    const legacy = await readJson<TrackDto>(await put('trk-old', { name: 'Old' }))
+    expect(legacy.author).toBeNull()
+
+    await put('trk-new', { name: 'New', author: 'Keep Me' })
+    const updated = await readJson<TrackDto>(await put('trk-new', { name: 'Renamed' }))
+    expect(updated.name).toBe('Renamed')
+    expect(updated.author).toBe('Keep Me')
+
+    const listed = await listTracks(context.harness, context.token, context.libraryId)
+    expect(listed.tracks.find((track) => track.id === 'trk-new')?.author).toBe('Keep Me')
   })
 
   it('проверяет JSON, Content-Type и размер тела', async () => {
@@ -1206,6 +1248,7 @@ describe('MemoryStore', () => {
       bpm: 120,
       musicalKey: null,
       genre: null,
+      author: null,
       tags: ['tag'],
       notes: '',
       color: '#D8FF3E',

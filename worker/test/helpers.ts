@@ -278,6 +278,12 @@ export class MemoryStore implements Store {
       bpm: input.bpm,
       musicalKey: input.musicalKey,
       genre: input.genre,
+      author:
+        input.author !== undefined
+          ? input.author
+          : existing && existing.deletedAt === null
+            ? existing.author
+            : null,
       tags: [...input.tags],
       notes: input.notes,
       color: input.color,

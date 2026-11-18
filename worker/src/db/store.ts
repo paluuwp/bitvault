@@ -55,6 +55,7 @@ export interface TrackRecord {
   bpm: number | null
   musicalKey: string | null
   genre: string | null
+  author: string | null
   tags: string[]
   notes: string
   color: string
@@ -83,6 +84,8 @@ export interface UpsertTrackInput {
   bpm: number | null
   musicalKey: string | null
   genre: string | null
+  /** undefined — поле не передано: сохранённое значение не меняется (для нового трека → null). */
+  author?: string | null
   tags: string[]
   notes: string
   color: string

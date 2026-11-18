@@ -68,6 +68,7 @@ interface TrackRow {
   bpm: number | null
   musical_key: string | null
   genre: string | null
+  author: string | null
   tags_json: string | null
   notes: string | null
   color: string | null
@@ -143,6 +144,7 @@ function toTrack(row: TrackRow): TrackRecord {
     bpm: row.bpm,
     musicalKey: row.musical_key,
     genre: row.genre,
+    author: row.author ?? null,
     tags: parseTags(row.tags_json),
     notes: row.notes ?? '',
     color: row.color ?? DEFAULT_TRACK_COLOR,
@@ -178,7 +180,7 @@ const SESSION_COLUMNS = 'id, user_id, token_hash, created_at, expires_at, last_u
 const FILE_COLUMNS =
   'id, library_id, kind, r2_key, mime_type, size, original_name, created_at, deleted_at'
 const TRACK_COLUMNS =
-  'id, library_id, name, bpm, musical_key, genre, tags_json, notes, color, is_favorite, ' +
+  'id, library_id, name, bpm, musical_key, genre, author, tags_json, notes, color, is_favorite, ' +
   'duration_sec, play_count, last_played_at, created_at, updated_at, audio_file_id, ' +
   'cover_file_id, deleted_at'
 const TRACK_FILE_COLUMNS =
@@ -356,8 +358,8 @@ export class D1Store implements Store {
         `INSERT INTO tracks (
            id, library_id, name, name_lower, bpm, musical_key, genre, tags_json, notes,
            color, is_favorite, duration_sec, play_count, last_played_at, created_at,
-           updated_at, version, deleted_at, audio_file_id, cover_file_id
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?, 1, NULL, ?, ?)
+           updated_at, version, deleted_at, audio_file_id, cover_file_id, author
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?, ?, 1, NULL, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET
            name = excluded.name,
            name_lower = excluded.name_lower,
@@ -374,6 +376,10 @@ export class D1Store implements Store {
            deleted_at = NULL,
            audio_file_id = excluded.audio_file_id,
            cover_file_id = excluded.cover_file_id,
+           author = CASE
+             WHEN ? = 1 OR tracks.deleted_at IS NOT NULL THEN excluded.author
+             ELSE tracks.author
+           END,
            version = tracks.version + 1
          WHERE tracks.library_id = excluded.library_id
          RETURNING ${TRACK_COLUMNS}`,
@@ -395,6 +401,8 @@ export class D1Store implements Store {
         input.updatedAt,
         input.audioFileId,
         input.coverFileId,
+        input.author ?? null,
+        input.author === undefined ? 0 : 1,
       )
 
     // Защита от гонки с чужим треком: правки вложений выполняются только для

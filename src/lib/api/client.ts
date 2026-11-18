@@ -326,6 +326,7 @@ function parseRemoteTrack(value: unknown): RemoteTrack | null {
   const bpm = parseOptionalNumber(value.bpm)
   const musicalKey = parseOptionalString(value.musicalKey)
   const genre = parseOptionalString(value.genre)
+  const author = parseOptionalString(value.author)
   const durationSec = parseOptionalNumber(value.durationSec)
   const lastPlayedAt = parseOptionalString(value.lastPlayedAt)
   const audioFile = parseOptionalFile(value.audioFile)
@@ -338,6 +339,7 @@ function parseRemoteTrack(value: unknown): RemoteTrack | null {
     bpm === undefined ||
     musicalKey === undefined ||
     genre === undefined ||
+    author === undefined ||
     durationSec === undefined ||
     lastPlayedAt === undefined ||
     audioFile === undefined ||
@@ -354,6 +356,7 @@ function parseRemoteTrack(value: unknown): RemoteTrack | null {
     bpm,
     musicalKey,
     genre,
+    author,
     tags: parsedTags,
     notes,
     color,

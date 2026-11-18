@@ -5,41 +5,48 @@ import type { MusicalKey } from '@/types/models'
 export interface TempoKeyModuleProps {
   bpm: number | null
   musicalKey: MusicalKey | null
+  /** Две половины равной ширины: разделитель ровно по центру блока (для плеера). */
+  evenHalves?: boolean
   className?: string
 }
 
-/** Плашка плеера с темпом и тональностью текущего бита: две ячейки через разделитель. */
-export function TempoKeyModule({ bpm, musicalKey, className }: TempoKeyModuleProps) {
+const valueClass = 'font-mono text-body font-semibold tabular-nums text-text'
+const labelClass = 'text-micro text-text-muted'
+
+/** Темп и тональность текущего бита в плеере: чистый текст без рамок и заливок. */
+export function TempoKeyModule({
+  bpm,
+  musicalKey,
+  evenHalves = false,
+  className,
+}: TempoKeyModuleProps) {
+  const halfClass = clsx('flex items-baseline gap-1', evenHalves && 'flex-1 justify-center')
+
   return (
     <div
       role="group"
       aria-label={formatTempoKeySummary(bpm, musicalKey)}
       className={clsx(
-        'flex h-8 shrink-0 items-stretch overflow-hidden rounded-control border border-divider/70 bg-surface-raised/40 shadow-bevel backdrop-blur-sm',
+        'flex shrink-0 items-baseline whitespace-nowrap',
+        evenHalves ? 'gap-2' : 'gap-3',
         className,
       )}
     >
-      <span className="flex w-14 flex-col items-center justify-center gap-0.5">
-        <span aria-hidden="true" className="text-micro text-text-subtle uppercase">
-          BPM
-        </span>
-        <span
-          aria-hidden="true"
-          className="font-mono text-caption leading-none font-semibold tabular-nums text-text"
-        >
+      <span className={halfClass}>
+        <span aria-hidden="true" className={valueClass}>
           {formatBpmValue(bpm)}
         </span>
-      </span>
-      <span aria-hidden="true" className="my-1.5 w-px shrink-0 bg-divider" />
-      <span className="flex w-14 flex-col items-center justify-center gap-0.5">
-        <span aria-hidden="true" className="text-micro text-text-subtle uppercase">
-          Key
+        <span aria-hidden="true" className={labelClass}>
+          BPM
         </span>
-        <span
-          aria-hidden="true"
-          className="font-mono text-caption leading-none font-semibold tabular-nums text-text"
-        >
+      </span>
+      <span aria-hidden="true" className="h-3 w-px self-center bg-white/15" />
+      <span className={halfClass}>
+        <span aria-hidden="true" className={clsx(valueClass, 'text-accent')}>
           {formatMusicalKeyValue(musicalKey)}
+        </span>
+        <span aria-hidden="true" className={clsx(labelClass, 'uppercase')}>
+          Key
         </span>
       </span>
     </div>

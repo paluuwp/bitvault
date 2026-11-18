@@ -414,16 +414,11 @@ function AppContent({ library }: { library: UseTracksResult }) {
             }
             toolbar={
               <LibraryToolbar
-                onlyFavorites={filters.onlyFavorites}
-                onToggleOnlyFavorites={filters.toggleOnlyFavorites}
-                showFavoritesFilter={!isFavorites}
                 tags={filters.availableTags}
                 activeTag={filters.tag}
                 onTagSelect={filters.setTag}
                 hasActiveFilters={filters.hasActiveFilters}
                 onResetFilters={filters.resetFilters}
-                resultCount={filters.visibleTracks.length}
-                totalCount={sectionTracks.length}
                 sort={filters.sortField}
                 sortDirection={filters.sortDirection}
                 onSortChange={filters.setSortField}

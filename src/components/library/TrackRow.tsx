@@ -26,7 +26,6 @@ export interface TrackRowProps {
 
 export function TrackRow({
   track,
-  index,
   selected = false,
   disabled = false,
   loading = false,
@@ -63,7 +62,7 @@ export function TrackRow({
       aria-busy={loading || undefined}
       onClick={handleRowClick}
       className={clsx(
-        'group relative isolate flex min-h-16 items-center gap-3 border-b border-divider px-3 py-2 last:border-b-0',
+        'group relative isolate flex min-h-16 items-center gap-3 border-b border-hairline px-3 py-2 last:border-b-0',
         disabled && 'opacity-60',
         onOpen && 'cursor-pointer',
         className,
@@ -75,26 +74,10 @@ export function TrackRow({
         className={clsx(
           'pointer-events-none absolute inset-x-1 inset-y-0.5 -z-10 rounded-control transition-opacity motion-reduce:transition-none',
           selected
-            ? 'bg-gradient-to-r from-accent/10 via-surface-active/70 to-surface-active/40 opacity-100'
-            : 'bg-surface-raised/50 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
+            ? 'bg-white/[0.09] opacity-100'
+            : 'bg-white/[0.05] opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
         )}
       />
-
-      {selected && (
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-2.5 left-2 w-0.5 rounded-full bg-accent shadow-[0_0_8px_rgb(247_147_30/0.5)]"
-        />
-      )}
-
-      {index !== undefined && (
-        <span
-          aria-hidden="true"
-          className="w-6 shrink-0 text-right font-mono text-mono-badge text-text-subtle"
-        >
-          {String(index).padStart(2, '0')}
-        </span>
-      )}
 
       <button
         type="button"
@@ -110,7 +93,7 @@ export function TrackRow({
         />
         <span
           aria-hidden="true"
-          className="relative text-h2 font-semibold text-accent-ink/80 select-none"
+          className="relative text-h2 font-semibold text-accent-ink select-none"
         >
           {getCoverLetter(track.name)}
         </span>
@@ -120,7 +103,7 @@ export function TrackRow({
         <span
           aria-hidden="true"
           className={clsx(
-            'absolute inset-0 flex items-center justify-center bg-bg/50 transition-opacity motion-reduce:transition-none',
+            'absolute inset-0 flex items-center justify-center bg-bg/70 transition-opacity motion-reduce:transition-none',
             loading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
           )}
         >
@@ -153,6 +136,7 @@ export function TrackRow({
           )}
         </p>
         <p className="truncate text-caption text-text-muted">
+          {track.author ? `${track.author} · ` : ''}
           {track.genre ?? 'Без жанра'} · {formatTrackDate(track.createdAt)}
         </p>
       </div>

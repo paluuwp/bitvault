@@ -56,7 +56,7 @@ export function Readout({
           <span className="inline-flex min-w-0 flex-col justify-center">
             <span
               aria-hidden="true"
-              className="text-micro leading-3 font-semibold tracking-[0.14em] text-text-muted uppercase"
+              className="text-micro leading-3 font-semibold text-text-muted"
             >
               {item.label}
             </span>

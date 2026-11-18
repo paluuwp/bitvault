@@ -222,7 +222,7 @@ export function useLibraryFilters(tracks: Track[]): UseLibraryFiltersResult {
 
       if (!normalizedQuery) return true
 
-      const haystack = [track.name, track.genre ?? '', ...track.tags]
+      const haystack = [track.name, track.author ?? '', track.genre ?? '', ...track.tags]
       return haystack.some((value) =>
         value.toLocaleLowerCase('ru').includes(normalizedQuery),
       )

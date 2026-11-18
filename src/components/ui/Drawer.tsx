@@ -81,10 +81,10 @@ export function Drawer({
       onClick={(event) => {
         if (closeOnBackdrop && event.target === event.currentTarget) onClose()
       }}
-      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-full max-w-[440px] rounded-modal border-l border-divider bg-surface/95 p-0 text-text shadow-popover backdrop:bg-black/75"
+      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-full max-w-[440px] translate-x-0 rounded-l-modal border-l glass-surface border-hairline bg-surface/50 p-0 text-text shadow-float transition-transform duration-300 ease-out starting:open:translate-x-full backdrop:bg-black/60 backdrop:backdrop-blur-sm"
     >
       <div className="flex h-full flex-col">
-        <header className="flex items-start justify-between gap-4 border-b border-divider bg-surface-raised px-4 py-3 shadow-bevel">
+        <header className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
           <div className="min-w-0">
             <h2 id={titleId} className="text-h1 text-text">
               {title}
@@ -100,10 +100,10 @@ export function Drawer({
           </IconButton>
         </header>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
 
         {footer && (
-          <footer className="flex flex-wrap justify-end gap-2 border-t border-divider bg-bg-subtle px-4 py-3">
+          <footer className="flex flex-wrap justify-end gap-2 border-t border-white/10 px-5 py-4">
             {footer}
           </footer>
         )}

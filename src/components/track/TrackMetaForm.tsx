@@ -116,6 +116,19 @@ export function TrackMetaForm({
       </div>
 
       <Input
+        label="Автор"
+        value={form.author}
+        maxLength={LIMITS.authorMax}
+        disabled={disabled}
+        error={errors.author}
+        placeholder="Имя исполнителя или продюсера"
+        onChange={(event) => {
+          onChange({ ...form, author: event.target.value })
+          onClearError('author')
+        }}
+      />
+
+      <Input
         label="Жанр"
         value={form.genre}
         maxLength={LIMITS.genreMax}
@@ -209,15 +222,17 @@ export function TrackMetaForm({
                   onChange({ ...form, color })
                 }}
                 className={clsx(
-                  'relative inline-flex h-10 w-10 items-center justify-center rounded-chip border-2 transition-colors disabled:pointer-events-none disabled:opacity-40 sm:h-8 sm:w-8',
-                  active ? 'border-accent' : 'border-transparent hover:border-border-strong',
+                  'relative inline-flex h-11 w-11 items-center justify-center rounded-control border-2 transition-colors disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:w-9',
+                  active
+                    ? 'border-accent ring-2 ring-accent/40'
+                    : 'border-transparent hover:border-border-strong',
                 )}
                 style={{ backgroundColor: color }}
               >
                 {active && (
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-0.5 rounded-chip border border-accent"
+                    className="pointer-events-none absolute inset-0.5 rounded-chip border border-accent-ink/30"
                   />
                 )}
                 {active && <Check className="h-4 w-4 text-accent-ink" aria-hidden="true" />}

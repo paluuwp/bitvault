@@ -48,7 +48,7 @@ function useOnlineStatus(): boolean {
 }
 
 const noticeClasses =
-  'fl-inset rounded-control border border-divider px-3 py-2 text-body text-text-muted'
+  'rounded-control border border-hairline bg-bg-subtle px-3 py-2 text-body text-text-muted'
 
 /**
  * Кнопка входа через Google.
@@ -131,7 +131,7 @@ export function GoogleSignInButton({
       <div
         role="status"
         aria-live="polite"
-        className="flex flex-col gap-1 rounded-control border border-divider bg-surface-raised px-3 py-2"
+        className="flex flex-col gap-1 rounded-control border border-hairline bg-surface-raised px-3 py-2"
       >
         <p className="text-body font-medium text-text">Вход не настроен в этой сборке</p>
         {effectiveDisabledReason ? (

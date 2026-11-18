@@ -108,12 +108,20 @@ export function AttachmentList({ fileIds, disabled = false, onRemove }: Attachme
           Вложений нет. Файл проекта, добавленный вместе с битом, появится здесь.
         </p>
       ) : (
-        <ul className="fl-inset rounded-control">
+        <ul className="flex flex-col gap-1.5">
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex items-center gap-2 border-b border-border px-3 py-2 last:border-b-0"
+              className="flex min-h-12 items-center gap-2 rounded-control border border-hairline bg-bg-subtle px-3 py-1"
             >
+              <span
+                aria-hidden="true"
+                className={
+                  item.missing
+                    ? 'h-1.5 w-1.5 shrink-0 rounded-full bg-danger'
+                    : 'h-1.5 w-1.5 shrink-0 rounded-full bg-play'
+                }
+              />
               <FileArchive className="h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
               <span
                 className={

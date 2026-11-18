@@ -49,6 +49,23 @@ describe('TrackRow', () => {
     expect(screen.getAllByText('—')).toHaveLength(2)
   })
 
+  it('показывает автора перед жанром, а без автора подпись начинается с жанра', () => {
+    const { unmount } = renderWithProviders(
+      <ul>
+        <TrackRow track={makeTrack({ author: 'Lil Test', genre: 'Trap' })} />
+      </ul>,
+    )
+    expect(screen.getByText(/^Lil Test · Trap · /)).toBeInTheDocument()
+    unmount()
+
+    renderWithProviders(
+      <ul>
+        <TrackRow track={makeTrack({ author: null, genre: 'Trap' })} />
+      </ul>,
+    )
+    expect(screen.getByText(/^Trap · /)).toBeInTheDocument()
+  })
+
   it('запускает воспроизведение и переключает избранное', async () => {
     const track = makeTrack({ name: 'Night Drive', audioFileId: 'audio-1' })
     const onPlay = vi.fn()

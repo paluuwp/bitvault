@@ -469,6 +469,7 @@ export async function importLibrary(
       nameLower: metadata.name.toLowerCase(),
       bpm: metadata.bpm,
       musicalKey: metadata.musicalKey,
+      author: metadata.author,
       genre: metadata.genre,
       tags: metadata.tags,
       notes: metadata.notes,

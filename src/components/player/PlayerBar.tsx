@@ -1,5 +1,5 @@
 import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { getCoverGradient, getCoverLetter } from '@/components/library/format'
 import { IconButton, Spinner } from '@/components/ui'
 import {
@@ -9,6 +9,7 @@ import {
 } from '@/context/PlayerContext'
 import { useBlobUrl } from '@/hooks/useBlobUrl'
 import { formatBpmValue, formatDuration, formatMusicalKeyValue } from '@/lib/format'
+import { FullPlayerDialog } from './FullPlayerDialog'
 import { PlayerSlider } from './PlayerSlider'
 import { TempoKeyModule } from './TempoKeyModule'
 
@@ -32,6 +33,8 @@ export function PlayerBar() {
   const { positionSec, durationSec, volume } = usePlayerProgress()
   const { togglePlay, next, prev, seekTo, setVolume } = usePlayerControls()
   const cover = useBlobUrl(currentTrack?.coverFileId)
+  const [fullOpen, setFullOpen] = useState(false)
+  const closeFull = useCallback(() => setFullOpen(false), [])
 
   const lastAudibleVolumeRef = useRef(volume > 0 ? volume : 1)
 
@@ -78,27 +81,28 @@ export function PlayerBar() {
       label={isPlaying ? 'Пауза' : 'Воспроизвести'}
       variant="key-accent"
       size="md"
+      className="!h-10 !w-10 !min-h-10 !min-w-10 rounded-full"
       disabled={loading}
       onClick={togglePlay}
     >
       {loading ? (
         <Spinner size="md" label="Загрузка трека" />
       ) : isPlaying ? (
-        <Pause className="h-5 w-5 fill-current" aria-hidden="true" />
+        <Pause className="h-4 w-4 fill-current" aria-hidden="true" />
       ) : (
-        <Play className="h-5 w-5 fill-current" aria-hidden="true" />
+        <Play className="h-4 w-4 fill-current" aria-hidden="true" />
       )}
     </IconButton>
   )
 
   const renderTransportButtons = () => (
     <>
-      <IconButton label="Предыдущий трек" variant="key" onClick={prev}>
-        <SkipBack className="h-5 w-5" aria-hidden="true" />
+      <IconButton label="Предыдущий трек" variant="ghost" size="toolbar" className="rounded-full" onClick={prev}>
+        <SkipBack className="h-4 w-4 fill-current" aria-hidden="true" />
       </IconButton>
       {renderPlayButton()}
-      <IconButton label="Следующий трек" variant="key" disabled={!canGoNext} onClick={next}>
-        <SkipForward className="h-5 w-5" aria-hidden="true" />
+      <IconButton label="Следующий трек" variant="ghost" size="toolbar" className="rounded-full" disabled={!canGoNext} onClick={next}>
+        <SkipForward className="h-4 w-4 fill-current" aria-hidden="true" />
       </IconButton>
     </>
   )
@@ -106,23 +110,24 @@ export function PlayerBar() {
   return (
     <footer
       aria-label="Плеер"
-      className="relative shrink-0 overflow-hidden rounded-t-card border border-divider/40 border-b-0 px-3 py-1 shadow-bevel sm:min-h-player sm:px-4"
+      className="relative mx-2 mb-2 shrink-0 overflow-hidden rounded-card border border-hairline px-3 pt-3 pb-[max(0.375rem,env(safe-area-inset-bottom))] shadow-float sm:mx-3 sm:min-h-[4.5rem] sm:px-4 sm:pt-3 sm:pb-[max(0.375rem,env(safe-area-inset-bottom))]"
     >
-      {/* Стеклянный слой: полупрозрачный градиент вместо плотной заливки */}
+      {/* Подложка без backdrop-filter: размытие захватывало оранжевую кнопку play и давало полосу со свечением */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-surface-raised/45 via-surface-raised/25 to-bg/75 backdrop-blur-2xl"
-      />
-      {/* Тёплая искра по верхней кромке отсека */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
+        className="pointer-events-none absolute inset-0 bg-white/[0.04] bg-gradient-to-br from-white/[0.07] to-transparent"
       />
 
-      <div className="relative flex h-full flex-col justify-center gap-1.5 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:grid-rows-[auto_auto] sm:items-center sm:gap-x-3 sm:gap-y-1">
+      <div className="relative flex h-full flex-col justify-center gap-1.5 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(0,34rem)_minmax(0,1fr)] sm:grid-rows-[auto_auto] sm:items-center sm:gap-x-4 sm:gap-y-0.5">
         {/* Слева: обложка и текущий трек — по центру высоты отсека */}
-        <div className="flex min-w-0 items-center justify-center gap-2 sm:justify-start sm:gap-3 sm:self-center">
-          <div className="fl-inset relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-chip border border-border/70 text-text-muted sm:h-16 sm:w-16 sm:rounded-control">
+        <div className="flex min-w-0 flex-col justify-center sm:col-start-1 sm:row-span-2 sm:row-start-1 sm:self-center sm:-translate-y-[3px]">
+        <button
+          type="button"
+          aria-label={`Открыть плеер: ${currentTrack.name}`}
+          onClick={() => setFullOpen(true)}
+          className="group/info flex min-w-0 items-center justify-center gap-2 rounded-control text-left outline-offset-4 sm:justify-start sm:gap-3"
+        >
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-chip border border-hairline bg-bg-subtle text-text-muted transition-[filter] group-hover/info:brightness-110 sm:h-11 sm:w-11 sm:rounded-control">
             <span
               aria-hidden="true"
               className="absolute inset-0"
@@ -144,24 +149,24 @@ export function PlayerBar() {
             {/* Блик поверх обложки */}
             <span
               aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-black/35"
+              className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20"
             />
-          </div>
+          </span>
 
-          <div className="min-w-0 max-w-[70%] flex-none sm:max-w-none sm:flex-1">
-            <p className="truncate text-body font-medium text-text" title={currentTrack.name}>
+          <span className="block min-w-0 max-w-[70%] flex-none sm:max-w-none sm:flex-1">
+            <span
+              className="block truncate text-body font-medium text-text transition-colors group-hover/info:text-accent"
+              title={currentTrack.name}
+            >
               {currentTrack.name}
-            </p>
-            {error ? (
-              <p role="alert" className="truncate text-caption text-danger" title={error}>
-                {error}
-              </p>
-            ) : (
-              <p className="hidden truncate font-mono text-caption text-text-muted sm:block">
+            </span>
+            {!error && (
+              <span className="hidden truncate text-caption text-text-muted sm:block">
                 {loading ? (
                   'Загрузка…'
                 ) : (
                   <>
+                    {currentTrack.author ? `${currentTrack.author} · ` : ''}
                     {currentTrack.genre || 'Без жанра'}
                     {(currentTrack.bpm !== null || currentTrack.musicalKey !== null) && (
                       <span className="sm:hidden">
@@ -172,27 +177,31 @@ export function PlayerBar() {
                     )}
                   </>
                 )}
-              </p>
+              </span>
             )}
-          </div>
+          </span>
+        </button>
+        {error && (
+          <p role="alert" className="truncate text-caption text-danger" title={error}>
+            {error}
+          </p>
+        )}
         </div>
 
         {/* По центру: транспорт с мягким акцентным ореолом. На широких экранах
             кнопки поднимаются в зону между верхней границей и полосой перемотки. */}
-        <div className="relative flex min-w-0 items-center justify-center self-center min-[900px]:mt-0.5 min-[900px]:self-start">
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute h-16 w-44 rounded-full bg-accent/10 blur-2xl"
-          />
-          <div className="relative flex items-center gap-4">{renderTransportButtons()}</div>
+        <div className="relative flex min-w-0 items-center justify-center self-center sm:col-start-2 sm:row-start-1">
+          <div className="relative flex items-center gap-2 sm:gap-3">{renderTransportButtons()}</div>
         </div>
 
         {/* Справа: громкость, а под ней — BPM и тональность */}
-        <div className="hidden min-w-0 flex-col items-end gap-2 sm:flex sm:self-center">
-          <div className="flex min-w-0 items-center gap-2.5">
+        <div className="hidden min-w-0 flex-col items-stretch gap-1 sm:col-start-3 sm:justify-self-end lg:min-w-[130px] sm:row-span-2 sm:row-start-1 sm:flex sm:self-center sm:-translate-y-[3px]">
+          <div className="flex w-0 min-w-full items-center">
             <IconButton
               label={muted ? 'Включить звук' : 'Выключить звук'}
-              variant="key"
+              variant="ghost"
+              size="toolbar"
+              className="rounded-full"
               onClick={toggleMute}
             >
               {muted ? (
@@ -206,22 +215,25 @@ export function PlayerBar() {
               max={1}
               step={VOLUME_STEP}
               label="Громкость"
+              size="lg"
               valueText={`${Math.round(volume * 100)}%`}
               onChange={setVolume}
-              className="w-12 min-w-0 shrink md:w-20"
+              className="min-w-0 flex-1"
             />
-            <span className="hidden shrink-0 text-left font-mono text-mono-badge tabular-nums text-text-muted md:block">
-              {Math.round(volume * 100)}%
-            </span>
           </div>
 
-          <TempoKeyModule bpm={currentTrack.bpm} musicalKey={currentTrack.musicalKey} />
+          <TempoKeyModule
+            bpm={currentTrack.bpm}
+            musicalKey={currentTrack.musicalKey}
+            evenHalves
+            className="translate-x-2"
+          />
         </div>
 
         {/* Полоса перемотки: по центру под транспортом, время по краям, как в макете.
             На широких экранах она вынесена из потока к нижней кромке — тогда обложка,
             транспорт и громкость стоят ровно по центру высоты отсека. */}
-        <div className="pointer-events-none flex items-center gap-2 sm:col-span-3 sm:mx-auto sm:w-full sm:max-w-[min(46rem,calc(100vw-23rem))] min-[900px]:absolute min-[900px]:inset-x-0 min-[900px]:bottom-0">
+        <div className="pointer-events-none flex items-center gap-2 sm:col-start-2 sm:row-start-2 sm:w-full">
           <span className="w-12 shrink-0 font-mono text-mono-badge tabular-nums text-text-muted">
             {formatDuration(position)}
           </span>
@@ -240,6 +252,8 @@ export function PlayerBar() {
           </span>
         </div>
       </div>
+
+      {fullOpen && <FullPlayerDialog open onClose={closeFull} />}
     </footer>
   )
 }

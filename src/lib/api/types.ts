@@ -65,6 +65,7 @@ export interface RemoteTrack {
   bpm: number | null
   musicalKey: string | null
   genre: string | null
+  author: string | null
   tags: string[]
   notes: string
   color: string
@@ -90,6 +91,7 @@ export interface RemoteTrackInput {
   bpm: number | null
   musicalKey: string | null
   genre: string | null
+  author: string | null
   tags: string[]
   notes: string
   color: string

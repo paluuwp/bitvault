@@ -13,14 +13,14 @@ export function EmptyState({ title, description, icon, action, className }: Empt
   return (
     <div
       className={clsx(
-        'fl-panel flex flex-col items-center justify-center rounded-card px-6 py-12 text-center',
+        'fl-panel animate-fade-up flex flex-col items-center justify-center rounded-card border-dashed px-6 py-16 text-center',
         className,
       )}
     >
       {icon && (
         <span
           aria-hidden="true"
-          className="fl-inset mb-4 inline-flex h-12 w-12 items-center justify-center rounded-chip text-text-muted"
+          className="mb-5 inline-flex h-16 w-16 items-center justify-center rounded-card bg-accent-dim text-accent shadow-soft"
         >
           {icon}
         </span>

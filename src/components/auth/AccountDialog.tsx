@@ -146,7 +146,7 @@ export function AccountDialog({ open, onClose }: AccountDialogProps) {
             {notice ? (
               <p
                 role="status"
-                className="fl-inset rounded-control px-3 py-2 text-body text-text"
+                className="rounded-control border border-hairline bg-bg-subtle px-3 py-2 text-body text-text"
               >
                 {notice}
               </p>
@@ -189,7 +189,7 @@ export function AccountDialog({ open, onClose }: AccountDialogProps) {
                   ) : (
                     <span
                       aria-hidden="true"
-                      className="fl-inset flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-label font-semibold text-text"
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-raised text-body font-semibold text-text"
                     >
                       {accountInitials(session.user.name, session.user.email)}
                     </span>
@@ -211,12 +211,9 @@ export function AccountDialog({ open, onClose }: AccountDialogProps) {
 
                 <section
                   aria-labelledby={librariesId}
-                  className="fl-inset rounded-control p-3"
+                  className="rounded-card border border-hairline bg-surface p-4"
                 >
-                  <h3
-                    id={librariesId}
-                    className="text-caption tracking-[0.08em] text-text-muted uppercase"
-                  >
+                  <h3 id={librariesId} className="text-h2 text-text">
                     Библиотеки
                   </h3>
                   {session.libraries.length === 0 ? (
@@ -224,7 +221,7 @@ export function AccountDialog({ open, onClose }: AccountDialogProps) {
                       Библиотек пока нет.
                     </p>
                   ) : (
-                    <ul className="mt-2 space-y-1">
+                    <ul className="mt-2 space-y-2">
                       {session.libraries.map((library) => (
                         <li
                           key={library.id}

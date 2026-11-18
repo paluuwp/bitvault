@@ -18,7 +18,7 @@ export function TagFilterList({ tags, activeTag, onTagSelect, className }: TagFi
       role="group"
       aria-label="Фильтр по тегам"
       className={clsx(
-        'fl-inset flex max-h-28 flex-wrap items-center gap-1.5 overflow-y-auto rounded-control border border-border px-1.5 py-1',
+        'fl-inset flex border border-hairline max-h-28 flex-wrap items-center gap-1.5 overflow-y-auto rounded-control p-1.5',
         className,
       )}
     >

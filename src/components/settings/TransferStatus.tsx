@@ -21,8 +21,8 @@ export function TransferStatus({ progress }: TransferStatusProps) {
   return (
     <div role="status" aria-live="polite" className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="inline-flex shrink-0 items-center gap-1.5 font-mono text-caption text-text-muted">
-          <span aria-hidden="true" className="fl-led text-play" />
+        <span className="inline-flex shrink-0 items-center gap-1.5 text-caption tabular-nums text-text-muted">
+          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-play" />
           {phaseLabels[progress.phase]}
           {counter}
         </span>

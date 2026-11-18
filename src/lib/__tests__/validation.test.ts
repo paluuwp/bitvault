@@ -24,6 +24,7 @@ describe('normalizeNewTrack', () => {
       name: 'My Beat',
       bpm: null,
       musicalKey: null,
+      author: null,
       genre: null,
       tags: [],
       notes: '',
@@ -34,6 +35,20 @@ describe('normalizeNewTrack', () => {
       durationSec: null,
       isFavorite: false,
     })
+  })
+
+  it('нормализует автора: trim, пустая строка в null, ограничение длины', () => {
+    expect(normalizeNewTrack({ name: 'A', author: '  Producer ' }).author).toBe('Producer')
+    expect(normalizeNewTrack({ name: 'A', author: '   ' }).author).toBeNull()
+    expect(normalizeNewTrack({ name: 'A' }).author).toBeNull()
+    expect(normalizeNewTrack({ name: 'A', author: 'a'.repeat(LIMITS.authorMax) }).author).toHaveLength(
+      LIMITS.authorMax,
+    )
+    expect(
+      captureAppError(() => normalizeNewTrack({ name: 'A', author: 'a'.repeat(LIMITS.authorMax + 1) }))
+        .code,
+    ).toBe('VALIDATION')
+    expect(normalizePatch({ author: ' ' }).author).toBeNull()
   })
 
   it('отклоняет пустое и слишком длинное имя', () => {

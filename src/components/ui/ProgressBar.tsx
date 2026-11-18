@@ -31,7 +31,7 @@ export function ProgressBar({
         aria-valuemax={safeMax}
         aria-valuenow={clamped}
         className={clsx(
-          'w-full overflow-hidden rounded-chip bg-bg-subtle shadow-sunken',
+          'w-full overflow-hidden rounded-full bg-surface-active',
           size === 'sm' ? 'h-1.5' : 'h-2',
         )}
       >

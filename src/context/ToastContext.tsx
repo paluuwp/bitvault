@@ -56,7 +56,7 @@ function ToastCard({
   }, [item.id, onDismiss])
 
   return (
-    <div className="fl-panel pointer-events-auto flex items-start gap-3 rounded-control border-divider p-3 shadow-popover">
+    <div className="fl-panel animate-fade-up pointer-events-auto flex items-start gap-3 rounded-card p-3.5 shadow-float">
       <span
         aria-hidden="true"
         className={clsx('fl-led mt-1.5 shrink-0', variantLedClasses[item.variant])}
@@ -106,7 +106,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         aria-live="polite"
         aria-atomic="false"
-        className="pointer-events-none fixed right-4 bottom-24 z-[60] flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2"
+        className="pointer-events-none fixed right-4 bottom-28 z-[60] flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2"
       >
         {toasts.map((item) => (
           <ToastCard key={item.id} item={item} onDismiss={dismiss} />

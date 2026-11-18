@@ -1,3 +1,4 @@
+import { TempoKeyModule } from '@/components/player/TempoKeyModule'
 import { Readout } from '@/components/ui'
 import { formatBpmValue, formatMusicalKeyValue, formatTempoKeySummary } from '@/lib/format'
 import type { MusicalKey } from '@/types/models'
@@ -17,14 +18,19 @@ export function KeyReadout({
   variant = 'row',
   className,
 }: KeyReadoutProps) {
+  // В строке списка — тот же минималистичный вид, что и в плеере.
+  if (variant === 'row') {
+    return <TempoKeyModule bpm={bpm} musicalKey={musicalKey} className={className} />
+  }
+
   return (
     <Readout
       items={[
         { label: 'BPM', value: formatBpmValue(bpm) },
         { label: 'KEY', value: formatMusicalKeyValue(musicalKey) },
       ]}
-      variant={variant === 'overlay' ? 'overlay' : 'inset'}
-      size={variant === 'overlay' ? 'xs' : 'sm'}
+      variant="overlay"
+      size="xs"
       label={formatTempoKeySummary(bpm, musicalKey)}
       className={className}
     />

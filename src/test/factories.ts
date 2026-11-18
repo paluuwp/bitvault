@@ -14,6 +14,7 @@ export function makeTrack(overrides: Partial<Track> = {}): Track {
     nameLower: name.toLocaleLowerCase('ru'),
     bpm: 140,
     musicalKey: 'F#m',
+    author: null,
     genre: 'Trap',
     tags: ['trap', 'night', '808'],
     notes: '',

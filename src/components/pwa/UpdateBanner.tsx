@@ -25,7 +25,7 @@ export function UpdateBanner({ store, blocked = false }: UpdateBannerProps) {
     : 'Обновите страницу — библиотека и файлы останутся на месте.'
 
   return (
-    <div className="flex shrink-0 flex-col gap-2 border-l-2 border-l-accent border-b border-b-divider bg-accent/10 px-4 py-2.5 sm:flex-row sm:items-center sm:gap-4 sm:px-content">
+    <div className="animate-fade-up mx-2 mt-2 flex shrink-0 flex-col gap-2 rounded-card border border-accent/25 bg-accent-dim px-4 py-3 shadow-soft sm:flex-row sm:items-center sm:gap-4 lg:mx-3">
       <div
         role="status"
         aria-live="polite"
@@ -46,6 +46,7 @@ export function UpdateBanner({ store, blocked = false }: UpdateBannerProps) {
           type="button"
           variant="primary"
           size="sm"
+          className="max-sm:min-h-11"
           loading={updating}
           disabled={updating || blocked}
           onClick={() => {
@@ -54,7 +55,7 @@ export function UpdateBanner({ store, blocked = false }: UpdateBannerProps) {
         >
           Обновить
         </Button>
-        <Button type="button" variant="ghost" size="sm" disabled={updating} onClick={dismiss}>
+        <Button type="button" variant="ghost" size="sm" className="max-sm:min-h-11" disabled={updating} onClick={dismiss}>
           Позже
         </Button>
       </div>

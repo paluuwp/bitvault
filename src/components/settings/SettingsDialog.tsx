@@ -3,6 +3,7 @@ import { Modal } from '@/components/ui'
 import type { ImportMode, UseLibraryTransferResult } from '@/hooks/useLibraryTransfer'
 import type { UseStorageInfoResult } from '@/hooks/useStorageInfo'
 import type { ImportResult } from '@/types/models'
+import { AppearancePanel } from './AppearancePanel'
 import { ImportDialog } from './ImportDialog'
 import { StorageMeter } from './StorageMeter'
 import { TransferPanel } from './TransferPanel'
@@ -77,6 +78,8 @@ export function SettingsDialog({
         closeOnBackdrop={!busy}
       >
         <div className="flex flex-col gap-4">
+          <AppearancePanel />
+
           <StorageMeter
             info={storage.info}
             loading={storage.loading}

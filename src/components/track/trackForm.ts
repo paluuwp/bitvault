@@ -5,6 +5,7 @@ export interface TrackFormState {
   name: string
   bpm: string
   musicalKey: MusicalKey | ''
+  author: string
   genre: string
   tags: string[]
   notes: string
@@ -18,6 +19,7 @@ export type TrackFormField = keyof TrackFormState
 export interface TrackFormErrors {
   name?: string
   bpm?: string
+  author?: string
   genre?: string
   tags?: string
   notes?: string
@@ -38,6 +40,7 @@ export function trackToForm(track: Track): TrackFormState {
     name: track.name,
     bpm: track.bpm === null ? '' : String(track.bpm),
     musicalKey: track.musicalKey ?? '',
+    author: track.author ?? '',
     genre: track.genre ?? '',
     tags: [...track.tags],
     notes: track.notes,
@@ -49,12 +52,14 @@ export function trackToForm(track: Track): TrackFormState {
 
 export function formToPatch(form: TrackFormState): TrackPatch {
   const genre = form.genre.trim()
+  const author = form.author.trim()
   const bpm = form.bpm.trim() === '' ? null : Number(form.bpm.trim())
 
   return {
     name: form.name.trim(),
     bpm,
     musicalKey: form.musicalKey === '' ? null : form.musicalKey,
+    author: author === '' ? null : author,
     genre: genre === '' ? null : genre,
     tags: form.tags,
     notes: form.notes.trim(),
@@ -84,6 +89,10 @@ export function validateTrackForm(form: TrackFormState): TrackFormErrors {
         errors.bpm = `BPM должен быть от ${LIMITS.bpmMin} до ${LIMITS.bpmMax}.`
       }
     }
+  }
+
+  if (form.author.trim().length > LIMITS.authorMax) {
+    errors.author = `Автор не должен превышать ${LIMITS.authorMax} символов.`
   }
 
   if (form.genre.trim().length > LIMITS.genreMax) {

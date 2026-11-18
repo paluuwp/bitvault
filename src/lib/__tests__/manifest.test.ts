@@ -66,6 +66,15 @@ describe('validateManifest', () => {
     expect(manifest.files).toHaveLength(1)
   })
 
+  it('импортирует старый манифест без author как author = null', () => {
+    const manifest = validateManifest(makeManifest())
+    expect(manifest.tracks[0]?.author).toBeNull()
+    const withAuthor = validateManifest(
+      makeManifest({ tracks: [makeTrack({ author: 'Producer' })] }),
+    )
+    expect(withAuthor.tracks[0]?.author).toBe('Producer')
+  })
+
   it('отклоняет чужое приложение и отсутствие списков', () => {
     expect(captureAppError(() => validateManifest(makeManifest({ app: 'other' }))).code).toBe(
       'IMPORT_INVALID_MANIFEST',
@@ -216,6 +225,7 @@ describe('buildManifest', () => {
       nameLower: 'beat',
       bpm: null,
       musicalKey: null,
+      author: null,
       genre: null,
       tags: [],
       notes: '',

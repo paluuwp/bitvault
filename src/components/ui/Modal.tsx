@@ -4,7 +4,7 @@ import { useEffect, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { IconButton } from './IconButton'
 
-export type ModalSize = 'sm' | 'md' | 'lg'
+export type ModalSize = 'sm' | 'md' | 'lg' | 'xl'
 
 export interface ModalProps {
   open: boolean
@@ -16,12 +16,15 @@ export interface ModalProps {
   size?: ModalSize
   closeOnBackdrop?: boolean
   closeLabel?: string
+  /** Визуально скрыть заголовок (остаётся для скринридеров). */
+  hideTitle?: boolean
 }
 
 const sizeClasses: Record<ModalSize, string> = {
   sm: 'max-w-sm',
   md: 'max-w-lg',
   lg: 'max-w-2xl',
+  xl: 'max-w-3xl',
 }
 
 export function Modal({
@@ -34,6 +37,7 @@ export function Modal({
   size = 'md',
   closeOnBackdrop = true,
   closeLabel = 'Закрыть окно',
+  hideTitle = false,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -93,14 +97,20 @@ export function Modal({
         if (closeOnBackdrop && event.target === event.currentTarget) onClose()
       }}
       className={clsx(
-        'm-auto w-[calc(100vw-2rem)] rounded-modal border border-divider bg-surface/95 p-0 text-text shadow-popover backdrop:bg-black/75 backdrop-blur-xl',
+        'animate-scale-in m-auto w-[calc(100vw-2rem)] overflow-hidden rounded-modal glass-surface border border-hairline bg-surface/85 p-0 text-text shadow-float backdrop:bg-black/60 backdrop:backdrop-blur-sm',
         sizeClasses[size],
       )}
     >
-      <div className="flex max-h-[85dvh] flex-col">
-        <header className="flex items-start justify-between gap-4 border-b border-divider bg-surface-raised px-4 py-3 shadow-bevel">
+      <div className="relative flex max-h-[85dvh] flex-col">
+        <header
+          className={
+            hideTitle
+              ? 'absolute top-3 right-3 z-10 flex items-start'
+              : 'flex items-start justify-between gap-4 border-b border-border px-5 py-4'
+          }
+        >
           <div className="min-w-0">
-            <h2 id={titleId} className="text-h1 text-text">
+            <h2 id={titleId} className={hideTitle ? 'sr-only' : 'text-h1 text-text'}>
               {title}
             </h2>
             {description && (
@@ -115,11 +125,11 @@ export function Modal({
         </header>
 
         {children && (
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">{children}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
         )}
 
         {footer && (
-          <footer className="flex flex-wrap justify-end gap-2 border-t border-divider bg-bg-subtle px-4 py-3">
+          <footer className="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-4">
             {footer}
           </footer>
         )}

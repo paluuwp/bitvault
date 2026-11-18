@@ -207,7 +207,7 @@ export function TrackDetailDrawer({
       >
         {form && track && (
           <div className="flex flex-col gap-5">
-            <div className="fl-panel flex items-center justify-between gap-3 rounded-card p-3">
+            <div className="flex items-center justify-between gap-3 rounded-card border border-white/10 bg-white/[0.04] bg-gradient-to-br from-white/[0.06] to-transparent p-4">
               <div className="min-w-0">
                 <p className="text-body font-medium text-text">Избранное</p>
                 <p className="text-caption text-text-muted">
@@ -225,7 +225,7 @@ export function TrackDetailDrawer({
               />
             </div>
 
-            <div className="fl-panel rounded-card p-3">
+            <div className="rounded-card border border-white/10 bg-white/[0.04] bg-gradient-to-br from-white/[0.06] to-transparent p-4">
               <CoverPicker
                 coverFileId={form.coverFileId}
                 trackName={form.name.trim() || track.name}
@@ -238,7 +238,7 @@ export function TrackDetailDrawer({
               />
             </div>
 
-            <div className="fl-panel rounded-card p-3">
+            <div className="rounded-card border border-white/10 bg-white/[0.04] bg-gradient-to-br from-white/[0.06] to-transparent p-4">
               <TrackMetaForm
                 form={form}
                 errors={errors}
@@ -249,7 +249,7 @@ export function TrackDetailDrawer({
               />
             </div>
 
-            <div className="fl-panel rounded-card p-3">
+            <div className="rounded-card border border-white/10 bg-white/[0.04] bg-gradient-to-br from-white/[0.06] to-transparent p-4">
               <AttachmentList
                 fileIds={form.attachmentFileIds}
                 disabled={busy}

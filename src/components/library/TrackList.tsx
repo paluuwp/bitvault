@@ -24,7 +24,7 @@ export function TrackList({
   return (
     <ul
       aria-label={label}
-      className="fl-panel overflow-hidden rounded-card"
+      className="fl-panel animate-fade-up overflow-hidden rounded-card bg-white/[0.025] bg-none py-1"
     >
       {tracks.map((track, index) => (
         <TrackRow

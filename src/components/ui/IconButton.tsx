@@ -22,11 +22,11 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
 }
 
 const variantClasses: Record<IconButtonVariant, string> = {
-  ghost: 'text-text-muted hover:bg-surface-hover hover:text-text',
+  ghost: 'text-text-muted hover:bg-surface-hover hover:text-text active:bg-surface-active',
   secondary:
-    'border border-control-border bg-surface-raised text-text hover:border-control-border-hover hover:bg-surface-hover',
+    'border border-control-border bg-surface-raised text-text hover:border-control-border-hover hover:bg-surface-hover active:bg-surface-active',
   primary: 'bg-accent text-accent-ink hover:bg-accent-hover active:bg-accent-pressed',
-  danger: 'bg-danger text-danger-ink hover:bg-danger/90',
+  danger: 'bg-danger text-danger-ink hover:bg-danger/90 active:bg-danger/80',
   key: 'fl-key fl-key--icon text-text',
   'key-accent': 'fl-key fl-key--accent fl-key--icon text-accent-ink',
 }
@@ -34,7 +34,7 @@ const variantClasses: Record<IconButtonVariant, string> = {
 const sizeClasses: Record<IconButtonSize, string> = {
   sm: 'h-10 w-10',
   md: 'h-11 w-11',
-  toolbar: 'h-8 w-8',
+  toolbar: 'h-8 w-8 pointer-coarse:h-11 pointer-coarse:w-11',
 }
 
 export function IconButton({
@@ -55,7 +55,7 @@ export function IconButton({
       aria-label={label}
       title={tooltip ?? label}
       className={clsx(
-        'inline-flex shrink-0 items-center justify-center rounded-control transition-colors disabled:pointer-events-none disabled:opacity-40',
+        'inline-flex shrink-0 items-center justify-center rounded-control transition-[background-color,border-color,color,scale] active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
         sizeClasses[size],
         active ? 'border border-accent/60 bg-accent-dim text-accent' : variantClasses[variant],
         className,

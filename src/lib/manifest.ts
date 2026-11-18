@@ -26,6 +26,7 @@ export interface ManifestTrack {
   name: string
   bpm: number | null
   musicalKey: MusicalKey | null
+  author: string | null
   genre: string | null
   tags: string[]
   notes: string
@@ -136,6 +137,7 @@ function readManifestTrack(value: unknown, index: number): ManifestTrack {
     bpm: typeof record.bpm === 'number' && Number.isFinite(record.bpm) ? record.bpm : null,
     musicalKey:
       typeof record.musicalKey === 'string' ? (record.musicalKey as MusicalKey) : null,
+    author: typeof record.author === 'string' ? record.author : null,
     genre: typeof record.genre === 'string' ? record.genre : null,
     tags: readStringArray(record.tags),
     notes: typeof record.notes === 'string' ? record.notes : '',
@@ -324,6 +326,7 @@ export function trackToManifest(track: Track): ManifestTrack {
     name: track.name,
     bpm: track.bpm,
     musicalKey: track.musicalKey,
+    author: track.author ?? null,
     genre: track.genre,
     tags: [...track.tags],
     notes: track.notes,

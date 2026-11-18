@@ -26,17 +26,17 @@ function ImportReport({ result }: { result: ImportResult }) {
   return (
     <div className="flex flex-col gap-4">
       <dl className="grid grid-cols-3 gap-2 text-center">
-        <div className="fl-inset rounded-control p-3">
+        <div className="rounded-control border border-hairline bg-bg-subtle p-3">
           <dt className="text-caption text-text-muted">Импортировано</dt>
-          <dd className="mt-0.5 font-mono text-h1 text-text">{result.tracksImported}</dd>
+          <dd className="mt-0.5 text-h1 tabular-nums text-text">{result.tracksImported}</dd>
         </div>
-        <div className="fl-inset rounded-control p-3">
+        <div className="rounded-control border border-hairline bg-bg-subtle p-3">
           <dt className="text-caption text-text-muted">Пропущено</dt>
-          <dd className="mt-0.5 font-mono text-h1 text-text">{result.tracksSkipped}</dd>
+          <dd className="mt-0.5 text-h1 tabular-nums text-text">{result.tracksSkipped}</dd>
         </div>
-        <div className="fl-inset rounded-control p-3">
+        <div className="rounded-control border border-hairline bg-bg-subtle p-3">
           <dt className="text-caption text-text-muted">Файлов</dt>
-          <dd className="mt-0.5 font-mono text-h1 text-text">{result.filesImported}</dd>
+          <dd className="mt-0.5 text-h1 tabular-nums text-text">{result.filesImported}</dd>
         </div>
       </dl>
 
@@ -141,10 +141,10 @@ export function ImportDialog({
 
             <label
               className={clsx(
-                'fl-panel flex cursor-pointer items-start gap-3 rounded-control p-3 transition-colors',
+                'flex min-h-11 cursor-pointer items-start gap-3 rounded-control border p-3 transition-colors',
                 mode === 'merge'
-                  ? 'border-accent/60 bg-surface-raised'
-                  : 'hover:border-border-strong',
+                  ? 'border-accent bg-accent/5 ring-1 ring-accent/40'
+                  : 'border-hairline bg-surface hover:border-border-strong',
               )}
             >
               <input
@@ -166,10 +166,10 @@ export function ImportDialog({
 
             <label
               className={clsx(
-                'fl-panel flex cursor-pointer items-start gap-3 rounded-control p-3 transition-colors',
+                'flex min-h-11 cursor-pointer items-start gap-3 rounded-control border p-3 transition-colors',
                 mode === 'replace'
-                  ? 'border-danger bg-danger/10'
-                  : 'hover:border-border-strong',
+                  ? 'border-danger bg-danger/10 ring-1 ring-danger/40'
+                  : 'border-hairline bg-surface hover:border-border-strong',
               )}
             >
               <input
@@ -231,7 +231,7 @@ export function ImportDialog({
           {uploading && (
             <p
               role="status"
-              className="rounded-control border border-border-strong bg-bg-subtle px-3 py-2 text-caption text-text-muted"
+              className="rounded-control border border-hairline bg-bg-subtle px-3 py-2 text-caption text-text-muted"
             >
               Сначала дождитесь завершения загрузки файлов — импорт станет доступен
               после неё.

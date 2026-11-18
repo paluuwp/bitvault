@@ -59,8 +59,8 @@ export function TopBar({
   onOpenSidebar,
 }: TopBarProps) {
   return (
-    <header className="shrink-0 px-2 pt-2">
-      <div className="fl-toolbar flex-wrap gap-2 px-3 py-2 md:min-h-topbar md:flex-nowrap md:gap-0 md:px-4 md:py-0 lg:px-content">
+    <header className="shrink-0 px-3 pt-3">
+      <div className="fl-toolbar flex-wrap gap-2 bg-bg-subtle/45 bg-gradient-to-b from-white/[0.05] to-transparent px-3 py-2 backdrop-blur-xl md:min-h-16 md:flex-nowrap md:gap-4 md:px-4 md:py-0 lg:px-5">
         <IconButton
           label="Открыть меню"
           variant="key"
@@ -74,7 +74,7 @@ export function TopBar({
         <ToolbarGroup
           label="Поиск"
           divider={false}
-          className="order-4 basis-full md:order-none md:basis-auto md:grow"
+          className="order-4 basis-full md:order-none md:basis-auto md:grow px-0!"
         >
           <Input
             type="search"
@@ -83,18 +83,18 @@ export function TopBar({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             leadingIcon={<Search aria-hidden="true" />}
-            className="h-11 rounded-full text-body md:h-8 md:text-caption"
-            containerClassName="min-w-0 w-full md:max-w-[420px] [&_input]:rounded-full [&_input]:border-control-border [&_input]:bg-bg-subtle/45 [&_input]:shadow-sunken [&_input]:backdrop-blur-sm [&_input:hover:not(:focus)]:border-control-border-hover"
+            className="h-11 rounded-full text-body md:h-10"
+            containerClassName="min-w-0 w-full md:max-w-[480px] [&_input]:rounded-full [&_input]:border-white/15 [&_input]:bg-black/20 [&_input]:pl-11 [&_input:hover:not(:focus)]:border-control-border-hover"
           />
         </ToolbarGroup>
 
         {/* Оба контрола сортировки рассчитаны на lg — ниже группа пустая. */}
-        <ToolbarGroup label="Сортировка" className="max-lg:hidden" divider={false}>
+        <ToolbarGroup label="Сортировка" className="gap-4 px-0! max-lg:hidden" divider={false}>
           <Select
             aria-label="Сортировка"
             value={sort}
             onChange={(event) => onSortChange(event.target.value as SortField)}
-            containerClassName="hidden shrink-0 lg:block [&_select]:h-8 [&_select]:w-auto [&_select]:rounded-full [&_select]:bg-bg-subtle/40 [&_select]:pl-3 [&_select]:text-caption"
+            containerClassName="hidden shrink-0 lg:block [&_select]:h-10 [&_select]:w-auto [&_select]:rounded-full [&_select]:border-white/15 [&_select]:bg-black/20 [&_select]:pl-4 [&_select]:text-body"
           >
             <option value="createdAt">Сначала новые</option>
             <option value="name">По названию</option>
@@ -115,7 +115,7 @@ export function TopBar({
             }
             variant="key"
             onClick={onToggleSortDirection}
-            className="rounded-full max-lg:hidden"
+            className="rounded-full md:h-10 md:w-10 max-lg:hidden"
           >
             {sortDirection === 'asc' ? (
               <ArrowUpNarrowWide className="h-4 w-4" aria-hidden="true" />
@@ -125,7 +125,7 @@ export function TopBar({
           </IconButton>
         </ToolbarGroup>
 
-        <ToolbarGroup label="Вид" className="order-2 md:order-none" divider={false}>
+        <ToolbarGroup label="Вид" className="order-2 px-0! md:order-none" divider={false}>
           <SegmentedControl
             label="Вид отображения"
             value={view}
@@ -136,7 +136,7 @@ export function TopBar({
 
         <ToolbarGroup
           label="Действия"
-          className="order-3 ml-auto md:order-none md:ml-0"
+          className="order-3 ml-auto px-0! md:order-none md:ml-0"
           divider={false}
         >
           <Button
@@ -144,7 +144,7 @@ export function TopBar({
             size="toolbar"
             onClick={onAddTrack}
             aria-label="Добавить биты"
-            className="rounded-full shadow-[0_8px_20px_-8px_rgb(247_147_30/0.7)] max-md:h-11 max-md:min-w-11 max-md:px-0"
+            className="rounded-full shadow-soft max-md:h-11 max-md:min-w-11 max-md:px-0 md:h-10 md:px-5 md:text-body"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             <span className="hidden md:inline">Добавить биты</span>

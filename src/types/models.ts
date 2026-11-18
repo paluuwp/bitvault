@@ -50,6 +50,8 @@ export interface Track {
   nameLower: string
   bpm: number | null
   musicalKey: MusicalKey | null
+  /** Автор (исполнитель или продюсер). */
+  author: string | null
   genre: string | null
   tags: string[]
   notes: string
@@ -85,6 +87,7 @@ export type NewTrackInput = {
   name: string
   bpm?: number | null
   musicalKey?: MusicalKey | null
+  author?: string | null
   genre?: string | null
   tags?: string[]
   notes?: string
@@ -102,6 +105,7 @@ export type TrackPatch = Partial<
     | 'name'
     | 'bpm'
     | 'musicalKey'
+    | 'author'
     | 'genre'
     | 'tags'
     | 'notes'

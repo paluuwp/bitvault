@@ -46,10 +46,10 @@ export function Input({
           aria-invalid={error ? true : undefined}
           aria-describedby={descriptionId}
           className={clsx(
-            'h-11 w-full rounded-control border bg-bg-subtle/70 text-body text-text shadow-sunken transition-colors placeholder:text-text-subtle disabled:cursor-not-allowed disabled:opacity-50',
+            'h-11 w-full rounded-control border bg-black/25 text-body text-text transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 placeholder:text-text-subtle disabled:cursor-not-allowed disabled:opacity-50',
             leadingIcon ? 'pr-3 pl-10' : 'px-3',
             error
-              ? 'border-danger'
+              ? 'border-danger focus:border-danger focus-visible:ring-danger/60'
               : 'border-control-border hover:border-control-border-hover focus:border-accent',
             className,
           )}

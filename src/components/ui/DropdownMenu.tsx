@@ -210,7 +210,7 @@ export function DropdownMenu({
               : { top: 0, left: 0, visibility: 'hidden' }
           }
           className={clsx(
-            'fixed z-50 min-w-44 max-h-[min(20rem,calc(100vh-1rem))] overflow-y-auto rounded-control border border-control-border bg-surface-raised/95 p-1 shadow-popover backdrop-blur-xl',
+            'fixed z-50 min-w-44 max-h-[min(20rem,calc(100vh-1rem))] overflow-y-auto animate-scale-in rounded-control border border-hairline bg-surface-raised p-1.5 shadow-popover',
             menuClassName,
           )}
         >
@@ -227,7 +227,7 @@ export function DropdownMenu({
                 triggerRef.current?.focus()
               }}
               className={clsx(
-                'flex w-full items-center gap-2 rounded-chip px-2.5 py-2.5 text-left text-body transition-colors disabled:pointer-events-none disabled:opacity-40',
+                'flex w-full items-center gap-2 rounded-chip px-2.5 py-2.5 text-left text-body transition-colors active:bg-surface-active disabled:pointer-events-none disabled:opacity-40',
                 item.variant === 'danger'
                   ? 'text-danger hover:bg-danger/10'
                   : 'text-text-muted hover:bg-surface-hover hover:text-text',
@@ -267,7 +267,7 @@ export function DropdownMenu({
           setOpen((value) => !value)
         }}
         className={clsx(
-          'inline-flex h-10 w-10 items-center justify-center rounded-control transition-colors disabled:pointer-events-none disabled:opacity-40',
+          'inline-flex h-10 w-10 items-center justify-center rounded-control transition-[background-color,color,transform] active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40',
           triggerClassName,
         )}
       >

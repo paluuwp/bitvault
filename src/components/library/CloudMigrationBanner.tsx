@@ -26,7 +26,7 @@ export function CloudMigrationBanner({
   return (
     <section
       aria-label="Перенос в аккаунт"
-      className="fl-inset flex flex-wrap items-center justify-between gap-3 rounded-control px-4 py-3"
+      className="fl-panel animate-fade-up flex flex-wrap items-center justify-between gap-3 rounded-card px-4 py-3"
     >
       <div className="min-w-0">
         <p className="text-body text-text">

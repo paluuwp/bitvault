@@ -136,7 +136,7 @@ export function AppShell({
   const closeSidebar = () => setSidebarOpen(false)
 
   return (
-    <div className="relative flex h-dvh flex-col overflow-hidden bg-bg bg-[radial-gradient(120%_85%_at_10%_-10%,rgb(247_147_30/0.13),transparent_55%),radial-gradient(90%_70%_at_100%_0%,rgb(139_92_246/0.10),transparent_60%),radial-gradient(70%_60%_at_50%_120%,rgb(56_189_248/0.05),transparent_65%)] text-text">
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-bg bg-[radial-gradient(120%_85%_at_10%_-10%,rgb(var(--accent-rgb)/0.16),transparent_55%),radial-gradient(90%_70%_at_100%_0%,rgb(139_92_246/0.13),transparent_60%),radial-gradient(60%_45%_at_20%_105%,rgb(var(--accent-rgb)/0.30),transparent_70%),radial-gradient(60%_45%_at_80%_105%,rgb(139_92_246/0.30),transparent_70%),radial-gradient(45%_35%_at_55%_55%,rgb(56_189_248/0.12),transparent_70%)] text-text">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[70] focus:rounded-control focus:bg-accent focus:px-4 focus:py-2 focus:text-body focus:font-medium focus:text-accent-ink"
@@ -145,9 +145,9 @@ export function AppShell({
       </a>
 
       <div className="flex min-h-0 flex-1">
-        <aside className="hidden w-sidebar shrink-0 lg:block lg:p-2">
+        <aside className="hidden w-sidebar shrink-0 lg:block lg:p-3 lg:pr-0">
           <Sidebar
-            className="overflow-hidden rounded-card border border-border/70"
+            className="overflow-hidden rounded-card border border-[rgb(255_255_255/0.07)] shadow-soft"
             activeSection={activeSection}
             onNavigate={onNavigate}
             onOpenSettings={onOpenSettings}
@@ -177,7 +177,7 @@ export function AppShell({
           <main
             id="main-content"
             tabIndex={-1}
-            className="min-h-0 flex-1 overflow-y-auto px-content py-4 md:py-5"
+            className="min-h-0 flex-1 overflow-y-auto px-3 py-3 md:pt-4 md:pb-5"
           >
             {children}
           </main>
@@ -191,7 +191,7 @@ export function AppShell({
           <div
             aria-hidden="true"
             onClick={closeSidebar}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="animate-fade-in absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
           <div
             ref={panelRef}
@@ -199,7 +199,7 @@ export function AppShell({
             aria-modal="true"
             aria-label="Боковое меню"
             tabIndex={-1}
-            className="absolute inset-y-0 left-0 flex w-[min(88vw,320px)] flex-col overflow-hidden rounded-r-card border-y border-r border-border/70 bg-bg-subtle/95 backdrop-blur-2xl outline-none"
+            className="absolute inset-y-0 left-0 flex w-[min(88vw,320px)] flex-col overflow-hidden rounded-r-card border-y border-r border-[rgb(255_255_255/0.07)] bg-bg-subtle/95 shadow-float backdrop-blur-2xl transition-transform duration-200 outline-none starting:-translate-x-full"
           >
             <Sidebar
               activeSection={activeSection}

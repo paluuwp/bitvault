@@ -32,7 +32,6 @@ export interface TrackCardProps {
 
 export function TrackCard({
   track,
-  index,
   selected = false,
   disabled = false,
   loading = false,
@@ -73,32 +72,18 @@ export function TrackCard({
       aria-busy={loading || undefined}
       onClick={handleCardClick}
       className={clsx(
-        'group relative flex h-full flex-col gap-3 rounded-card border bg-surface/45 bg-gradient-to-b from-white/5 to-transparent p-2.5 shadow-bevel backdrop-blur-md transition-colors hover:z-10 focus-within:z-10',
-        selected ? 'border-accent' : 'border-divider',
-        interactive && !selected && 'hover:border-accent/60 hover:bg-surface-raised focus-within:border-accent/60 focus-within:bg-surface-raised',
+        'animate-fade-up group relative flex h-full flex-col gap-3 glass-surface rounded-card border p-2.5 shadow-soft transition-[transform,translate,scale,box-shadow,background-color,border-color] hover:z-10 focus-within:z-10 motion-reduce:transition-none',
+        selected ? 'border-accent' : 'border-hairline',
+        interactive && 'hover:-translate-y-0.5 hover:shadow-float',
+        interactive && !selected && 'hover:border-border-strong hover:bg-surface-raised/70 focus-within:border-border-strong focus-within:bg-surface-raised/70',
         disabled && 'opacity-60',
         onOpen && 'cursor-pointer',
         className,
       )}
     >
-      {selected && (
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-2 left-0 w-0.5 rounded-r-chip bg-accent"
-        />
-      )}
-
-      {index !== undefined && (
-        <span
-          aria-hidden="true"
-          className="font-mono text-mono-badge text-text-subtle"
-        >
-          {String(index).padStart(2, '0')}
-        </span>
-      )}
 
       <div className="relative">
-        <div className="relative aspect-square w-full overflow-hidden rounded-chip border border-border">
+        <div className="relative aspect-square w-full overflow-hidden rounded-control border border-hairline">
           <div
             aria-hidden="true"
             className="absolute inset-0"
@@ -106,7 +91,7 @@ export function TrackCard({
           />
           <span
             aria-hidden="true"
-            className="absolute inset-0 flex items-center justify-center text-4xl font-semibold text-accent-ink/70 select-none"
+            className="absolute inset-0 flex items-center justify-center text-4xl font-semibold text-accent-ink select-none"
           >
             {getCoverLetter(track.name)}
           </span>
@@ -128,10 +113,10 @@ export function TrackCard({
                 hasAudio ? `Воспроизвести «${track.name}»` : `Открыть «${track.name}»`
               }
               className={clsx(
-                'track-card-play pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-control border border-control-border bg-bg/80 text-play transition-[opacity,background-color,color] hover:bg-play hover:text-play-ink focus-visible:bg-play focus-visible:text-play-ink disabled:opacity-40 motion-reduce:transition-none',
+                'track-card-play pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-control-border bg-bg/90 text-play shadow-soft transition-[opacity,transform,background-color,color] hover:bg-play hover:text-play-ink focus-visible:bg-play focus-visible:text-play-ink disabled:opacity-40 motion-reduce:transition-none',
                 loading
                   ? 'opacity-100'
-                  : 'md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100',
+                  : 'md:scale-90 md:opacity-0 md:group-hover:scale-100 md:group-hover:opacity-100 md:group-focus-within:scale-100 md:group-focus-within:opacity-100',
               )}
             >
               {loading ? (
@@ -177,7 +162,7 @@ export function TrackCard({
             items={menuItems}
             placement="top"
             disabled={!interactive}
-            triggerClassName="bg-bg/70 text-text hover:bg-bg/80"
+            triggerClassName="bg-bg/90 text-text hover:bg-bg"
           />
         </div>
       </div>
@@ -205,6 +190,7 @@ export function TrackCard({
           )}
         </h3>
         <p className="truncate text-caption text-text-muted">
+          {track.author ? `${track.author} · ` : ''}
           {track.genre ?? 'Без жанра'} · {formatTrackDate(track.createdAt)}
         </p>
         {visibleTags.length > 0 && (

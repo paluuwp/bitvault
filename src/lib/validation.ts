@@ -27,6 +27,7 @@ export interface NormalizedNewTrack {
   name: string
   bpm: number | null
   musicalKey: MusicalKey | null
+  author: string | null
   genre: string | null
   tags: string[]
   notes: string
@@ -43,6 +44,7 @@ export interface NormalizedImportedTrack {
   name: string
   bpm: number | null
   musicalKey: MusicalKey | null
+  author: string | null
   genre: string | null
   tags: string[]
   notes: string
@@ -112,6 +114,15 @@ function normalizeMusicalKey(value: unknown): MusicalKey | null {
   const matched = matchMusicalKey(value)
   if (!matched) fail('Выберите тональность из списка.')
   return matched
+}
+
+function normalizeAuthor(value: unknown): string | null {
+  if (value === null || value === undefined) return null
+  if (typeof value !== 'string') fail('Автор должен быть строкой.')
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  if (trimmed.length > LIMITS.authorMax) fail(`Автор не должен превышать ${LIMITS.authorMax} символов.`)
+  return trimmed
 }
 
 function normalizeGenre(value: unknown): string | null {
@@ -203,6 +214,7 @@ export function normalizeNewTrack(input: NewTrackInput): NormalizedNewTrack {
     name: normalizeTrackName(record.name),
     bpm: normalizeBpm(record.bpm),
     musicalKey: normalizeMusicalKey(record.musicalKey),
+    author: normalizeAuthor(record.author),
     genre: normalizeGenre(record.genre),
     tags: sanitizeTags(record.tags),
     notes: normalizeNotes(record.notes),
@@ -223,6 +235,7 @@ export function normalizePatch(patch: TrackPatch): TrackPatch {
   if ('name' in record) result.name = normalizeTrackName(record.name)
   if ('bpm' in record) result.bpm = normalizeBpm(record.bpm)
   if ('musicalKey' in record) result.musicalKey = normalizeMusicalKey(record.musicalKey)
+  if ('author' in record) result.author = normalizeAuthor(record.author)
   if ('genre' in record) result.genre = normalizeGenre(record.genre)
   if ('tags' in record) result.tags = sanitizeTags(record.tags)
   if ('notes' in record) result.notes = normalizeNotes(record.notes)
@@ -351,6 +364,17 @@ function normalizeImportedGenre(value: unknown, name: string, warnings: string[]
   return trimmed
 }
 
+function normalizeImportedAuthor(value: unknown, name: string, warnings: string[]): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  if (trimmed.length > LIMITS.authorMax) {
+    warnings.push(`Автор трека «${name}» обрезан до ${LIMITS.authorMax} символов.`)
+    return trimmed.slice(0, LIMITS.authorMax)
+  }
+  return trimmed
+}
+
 function normalizeImportedNotes(value: unknown, name: string, warnings: string[]): string {
   if (typeof value !== 'string') return ''
   const trimmed = value.trim()
@@ -440,6 +464,7 @@ export function normalizeImportedTrackMetadata(record: unknown): ImportedTrackNo
       name,
       bpm: normalizeImportedBpm(record.bpm, name, warnings),
       musicalKey: normalizeImportedKey(record.musicalKey, name, warnings),
+      author: normalizeImportedAuthor(record.author, name, warnings),
       genre: normalizeImportedGenre(record.genre, name, warnings),
       tags,
       notes: normalizeImportedNotes(record.notes, name, warnings),

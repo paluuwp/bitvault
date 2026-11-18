@@ -9,6 +9,8 @@ export interface PlayerSliderProps {
   label: string
   valueText: string
   disabled?: boolean
+  /** `lg` — крупнее бегунок и дорожка (громкость). */
+  size?: 'md' | 'lg'
   className?: string
   onChange: (value: number) => void
 }
@@ -25,6 +27,7 @@ export function PlayerSlider({
   label,
   valueText,
   disabled = false,
+  size = 'md',
   className,
   onChange,
 }: PlayerSliderProps) {
@@ -131,25 +134,21 @@ export function PlayerSlider({
     >
       <div
         ref={trackRef}
-        className="relative h-1.5 w-full rounded-chip bg-bg-subtle shadow-sunken"
+        className={clsx('relative w-full rounded-full bg-surface-active', size === 'lg' ? 'h-1.5' : 'h-1')}
       >
         <div
-          className="absolute inset-y-0 left-0 rounded-chip bg-gradient-to-r from-accent-pressed via-accent to-accent-hover shadow-[0_0_10px_rgb(247_147_30/0.35)]"
+          className="absolute inset-y-0 left-0 rounded-full bg-accent"
           style={{ width: `${percent}%` }}
-        >
-          {/* Точка на конце дорожки: позиция видна без наведения */}
-          <span
-            aria-hidden="true"
-            className="absolute top-1/2 -right-[3px] h-2 w-2 -translate-y-1/2 rounded-full bg-accent-hover shadow-[0_0_8px_rgb(247_147_30/0.8)]"
-          />
-        </div>
+        />
+        {/* Круглый бегунок: всегда виден, при наведении/перетаскивании увеличивается */}
         <span
           aria-hidden="true"
           className={clsx(
-            'absolute top-1/2 h-4 w-2 -translate-x-1/2 -translate-y-1/2 rounded-led border border-accent-ink/40 bg-accent shadow-[0_0_10px_rgb(247_147_30/0.55)] transition-opacity motion-reduce:transition-none',
+            'absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-text shadow-soft transition-transform motion-reduce:transition-none',
+            size === 'lg' ? 'h-4 w-4' : 'h-3 w-3',
             dragging
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100',
+              ? 'scale-125'
+              : 'group-hover:scale-110 group-focus-visible:scale-110',
           )}
           style={{ left: `${percent}%` }}
         />

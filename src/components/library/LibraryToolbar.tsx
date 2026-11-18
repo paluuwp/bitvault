@@ -1,22 +1,15 @@
-import { clsx } from 'clsx'
-import { ArrowDownNarrowWide, ArrowUpNarrowWide, Heart, RotateCcw } from 'lucide-react'
+import { ArrowDownNarrowWide, ArrowUpNarrowWide, RotateCcw } from 'lucide-react'
 import { IconButton, Select } from '@/components/ui'
 import type { TagStat } from '@/hooks/useLibraryFilters'
 import type { SortDirection, SortField } from '@/types/models'
-import { formatTrackCount } from './format'
 import { TagFilterList } from './TagFilterList'
 
 export interface LibraryToolbarProps {
-  onlyFavorites: boolean
-  onToggleOnlyFavorites: () => void
-  showFavoritesFilter?: boolean
   tags: TagStat[]
   activeTag: string | null
   onTagSelect: (tag: string | null) => void
   hasActiveFilters: boolean
   onResetFilters: () => void
-  resultCount: number
-  totalCount: number
   sort: SortField
   sortDirection: SortDirection
   onSortChange: (value: SortField) => void
@@ -24,67 +17,30 @@ export interface LibraryToolbarProps {
 }
 
 export function LibraryToolbar({
-  onlyFavorites,
-  onToggleOnlyFavorites,
-  showFavoritesFilter = true,
   tags,
   activeTag,
   onTagSelect,
   hasActiveFilters,
   onResetFilters,
-  resultCount,
-  totalCount,
   sort,
   sortDirection,
   onSortChange,
   onToggleSortDirection,
 }: LibraryToolbarProps) {
-  const countLabel = hasActiveFilters
-    ? `${resultCount} из ${formatTrackCount(totalCount)}`
-    : formatTrackCount(resultCount)
-
   return (
-    <div className="fl-panel relative flex flex-col gap-2.5 overflow-hidden rounded-card px-3 py-2 pt-3">
-      <span aria-hidden="true" className="fl-groove absolute inset-x-0 top-0" />
-
-      <div className="flex flex-wrap items-center gap-2">
-        {showFavoritesFilter && (
-          <button
-            type="button"
-            aria-pressed={onlyFavorites}
-            onClick={onToggleOnlyFavorites}
-            className="fl-key text-caption"
-          >
-            <Heart
-              className={clsx('h-4 w-4', onlyFavorites && 'fill-current')}
-              aria-hidden="true"
-            />
-            <span
-              aria-hidden="true"
-              className={clsx(
-                'fl-led',
-                onlyFavorites ? 'text-favorite' : 'text-text-subtle',
-              )}
-            />
-            Только избранное
-          </button>
-        )}
-
-        <span className="text-caption text-text-muted" aria-live="polite">
-          {countLabel}
-        </span>
-
-        {hasActiveFilters && (
+    <div className="fl-panel relative flex flex-col gap-2.5 overflow-hidden rounded-card p-3">
+      {hasActiveFilters && (
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={onResetFilters}
-            className="fl-key ml-auto text-caption text-text-muted"
+            className="fl-key text-caption text-text-muted"
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
             Сбросить фильтры
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* На узких экранах сортировка живёт здесь: в TopBar её не видно. */}
       <div className="flex items-center gap-2 lg:hidden">
@@ -92,7 +48,7 @@ export function LibraryToolbar({
           aria-label="Сортировка"
           value={sort}
           onChange={(event) => onSortChange(event.target.value as SortField)}
-          containerClassName="min-w-0 flex-1 [&_select]:h-8 [&_select]:w-full [&_select]:py-0 [&_select]:pr-8 [&_select]:pl-2 [&_select]:text-caption"
+          containerClassName="min-w-0 flex-1 [&_select]:h-11 [&_select]:w-full [&_select]:py-0 [&_select]:pr-8 [&_select]:pl-2 [&_select]:text-caption"
         >
           <option value="createdAt">Сначала новые</option>
           <option value="name">По названию</option>

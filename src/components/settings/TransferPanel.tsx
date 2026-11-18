@@ -29,13 +29,10 @@ export function TransferPanel({
   return (
     <section
       aria-labelledby="settings-transfer-title"
-      className="fl-panel rounded-card p-3"
+      className="rounded-card border border-hairline bg-surface p-4"
     >
       <header>
-        <h3
-          id="settings-transfer-title"
-          className="text-label uppercase text-text-subtle"
-        >
+        <h3 id="settings-transfer-title" className="text-h2 text-text">
           Перенос библиотеки
         </h3>
         <p className="mt-1 text-caption text-text-muted">
@@ -45,8 +42,8 @@ export function TransferPanel({
       </header>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <div className="fl-inset flex flex-col gap-2 rounded-control p-2.5">
-          <h4 className="text-label uppercase text-text-subtle">Экспорт</h4>
+        <div className="flex flex-col gap-2 rounded-control border border-hairline bg-bg-subtle p-3">
+          <h4 className="text-body font-medium text-text">Экспорт</h4>
           <p className="text-caption text-text-muted">
             Создаст архив всей библиотеки и скачает его.
           </p>
@@ -64,8 +61,8 @@ export function TransferPanel({
           {exporting && progress && <TransferStatus progress={progress} />}
         </div>
 
-        <div className="fl-inset flex flex-col gap-2 rounded-control p-2.5">
-          <h4 className="text-label uppercase text-text-subtle">Импорт</h4>
+        <div className="flex flex-col gap-2 rounded-control border border-hairline bg-bg-subtle p-3">
+          <h4 className="text-body font-medium text-text">Импорт</h4>
           <p className="text-caption text-text-muted">
             Загрузите ZIP-архив, созданный BitVault.
           </p>
@@ -83,7 +80,10 @@ export function TransferPanel({
       </div>
 
       {warningMessage && (
-        <p role="status" className="mt-3 text-caption text-warning">
+        <p
+          role="status"
+          className="mt-3 flex items-start gap-2 text-caption text-warning before:mt-1 before:h-1.5 before:w-1.5 before:shrink-0 before:rounded-full before:bg-warning before:content-['']"
+        >
           {warningMessage}
         </p>
       )}

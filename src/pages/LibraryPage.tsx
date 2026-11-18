@@ -36,9 +36,9 @@ function LibrarySkeleton() {
       {Array.from({ length: 8 }).map((_, index) => (
         <div
           key={index}
-          className="flex h-full flex-col gap-3 rounded-card border border-border bg-surface p-2.5 shadow-bevel"
+          className="flex h-full flex-col gap-3 rounded-card border border-hairline bg-surface p-2.5 shadow-soft"
         >
-          <div className="aspect-square w-full animate-pulse rounded-chip border border-border bg-surface-hover" />
+          <div className="aspect-square w-full animate-pulse rounded-control bg-surface-hover" />
           <div className="flex flex-col gap-2 px-0.5 pb-1">
             <div className="h-4 w-3/4 animate-pulse rounded-control bg-surface-hover" />
             <div className="h-3 w-1/2 animate-pulse rounded-control bg-surface-hover" />

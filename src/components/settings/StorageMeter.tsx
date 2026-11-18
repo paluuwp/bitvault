@@ -42,13 +42,13 @@ export function StorageMeter({ info, loading, onRequestPersistence }: StorageMet
   return (
     <section
       aria-labelledby="settings-storage-title"
-      className="fl-panel rounded-card p-3"
+      className="rounded-card border border-hairline bg-surface p-4"
     >
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3
             id="settings-storage-title"
-            className="flex items-center gap-2 text-label uppercase text-text-subtle"
+            className="flex items-center gap-2 text-h2 text-text"
           >
             <HardDrive className="h-4 w-4 text-text-muted" aria-hidden="true" />
             Хранилище
@@ -68,15 +68,15 @@ export function StorageMeter({ info, loading, onRequestPersistence }: StorageMet
         </p>
       ) : hasNumbers ? (
         <div className="mt-3 flex flex-col gap-2">
-          <div className="fl-inset flex items-baseline justify-between gap-3 rounded-control p-2.5">
-            <span className="font-mono text-mono-badge text-text">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-body tabular-nums text-text">
               {formatBytes(usage)} из {formatBytes(quota)}
             </span>
             <span
               className={
                 highUsage
-                  ? 'font-mono text-mono-badge text-warning'
-                  : 'font-mono text-mono-badge text-text-muted'
+                  ? 'text-caption tabular-nums text-warning'
+                  : 'text-caption tabular-nums text-text-muted'
               }
             >
               {Math.round(percent)}%
@@ -85,7 +85,7 @@ export function StorageMeter({ info, loading, onRequestPersistence }: StorageMet
           <ProgressBar
             value={percent}
             label="Использование локального хранилища"
-            size="md"
+            size="sm"
           />
           {highUsage && (
             <p role="status" className="text-caption text-warning">
@@ -99,8 +99,8 @@ export function StorageMeter({ info, loading, onRequestPersistence }: StorageMet
         </p>
       )}
 
-      <div className="mt-4 flex flex-col gap-2 border-t border-divider pt-3">
-        <p className="fl-inset flex items-start gap-2 rounded-control p-2.5 text-caption text-text-muted">
+      <div className="mt-4 flex flex-col gap-2 border-t border-hairline pt-3">
+        <p className="flex items-start gap-2 rounded-control border border-hairline bg-bg-subtle p-3 text-caption text-text-muted">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           {info?.persisted
             ? 'Постоянное хранение включено — браузер не удалит данные автоматически.'

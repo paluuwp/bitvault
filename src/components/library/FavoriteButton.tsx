@@ -33,8 +33,8 @@ export function FavoriteButton({
       className={clsx(
         'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-control border transition-colors disabled:pointer-events-none disabled:opacity-40',
         variant === 'overlay'
-          ? 'border-control-border bg-bg/70 hover:bg-bg/80'
-          : 'border-border hover:bg-surface-raised',
+          ? 'border-control-border bg-bg/90 hover:bg-bg'
+          : 'border-transparent hover:bg-surface-hover',
         isFavorite
           ? 'text-favorite'
           : variant === 'overlay'

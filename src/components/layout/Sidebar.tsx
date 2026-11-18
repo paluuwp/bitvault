@@ -69,13 +69,13 @@ export function Sidebar({
   return (
     <div
       className={clsx(
-        'flex h-full min-h-0 flex-col bg-gradient-to-b from-surface-chrome/40 via-bg-subtle/45 to-bg/60 backdrop-blur-2xl',
+        'flex h-full min-h-0 flex-col bg-bg-subtle/45 bg-gradient-to-b from-white/[0.05] to-transparent backdrop-blur-xl',
         className,
       )}
     >
-      <div className="flex h-topbar shrink-0 items-center justify-between gap-2 border-b border-divider px-4">
+      <div className="flex h-topbar shrink-0 items-center justify-between gap-2 border-b border-hairline px-4">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-h2 font-semibold tracking-[0.16em] uppercase text-text">
+          <span className="font-mono text-h2 font-semibold text-text">
             BITVAULT
           </span>
           <Led tone="accent" />
@@ -87,7 +87,7 @@ export function Sidebar({
         )}
       </div>
 
-      <nav aria-label="Основная навигация" className="min-h-0 flex-1 overflow-y-auto px-3 py-4">
+      <nav aria-label="Основная навигация" className="min-h-0 flex-1 overflow-y-auto px-2 py-3 lg:px-3 lg:py-4">
         <div className="space-y-1">
           {navItems.map((item) => {
             const isActive = item.id === activeSection
@@ -99,21 +99,20 @@ export function Sidebar({
                 onClick={() => onNavigate(item.id)}
                 aria-current={isActive ? 'page' : undefined}
                 className={clsx(
-                  'relative flex min-h-11 w-full items-center gap-3 rounded-control px-3 py-2.5 text-body transition-colors',
+                  'relative flex min-h-11 w-full items-center gap-3 rounded-full px-4 py-2.5 text-body transition-colors',
                   isActive
-                    ? 'bg-gradient-to-r from-surface-raised to-surface-raised/55 text-text shadow-bevel'
+                    ? 'bg-accent-dim font-medium text-text'
                     : 'text-text-muted hover:bg-surface-hover hover:text-text',
                 )}
               >
-                {isActive && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute top-2 bottom-2 left-0 w-0.5 rounded-r-chip bg-accent shadow-[0_0_10px_rgb(247_147_30/0.55)]"
-                  />
-                )}
                 {item.icon}
                 <span className="truncate">{item.label}</span>
-                <span className="ml-auto shrink-0 rounded-chip bg-bg-subtle px-1.5 py-0.5 font-mono text-micro text-text-muted">
+                <span
+                  className={clsx(
+                    'ml-auto shrink-0 rounded-chip px-1.5 py-0.5 font-mono text-micro',
+                    isActive ? 'bg-black/25 text-text' : 'bg-surface text-text-muted',
+                  )}
+                >
                   {count}
                 </span>
               </button>
@@ -121,11 +120,11 @@ export function Sidebar({
           })}
         </div>
 
-        <div className="mt-6">
-          <div className="fl-groove mx-3 mb-2" aria-hidden="true" />
-          <h2 className="px-3 pb-2 text-micro text-text-muted uppercase">Теги</h2>
+        <div className="mt-5 lg:mt-6">
+          <div className="mx-3 mb-2 h-px bg-hairline" aria-hidden="true" />
+          <h2 className="px-4 pb-2 text-caption font-semibold text-text-muted">Теги</h2>
           {tags.length === 0 ? (
-            <p className="px-3 text-caption text-text-muted">
+            <p className="px-4 text-caption text-text-muted">
               Теги появятся после добавления битов.
             </p>
           ) : (
@@ -135,7 +134,7 @@ export function Sidebar({
                   <button
                     type="button"
                     onClick={() => onTagSelect?.(tag.name)}
-                    className="group flex min-h-10 w-full items-center justify-between gap-2 rounded-control px-3 py-1.5 text-body text-text-muted transition-colors hover:bg-surface hover:text-text"
+                    className="group flex min-h-11 w-full items-center justify-between gap-2 rounded-full px-4 py-1.5 lg:min-h-10 text-body text-text-muted transition-colors hover:bg-surface hover:text-text"
                   >
                     <span className="truncate">#{tag.name}</span>
                     <span className="shrink-0 font-mono text-mono-badge text-text-muted">
@@ -149,13 +148,13 @@ export function Sidebar({
         </div>
       </nav>
 
-      <div className="shrink-0 space-y-2 border-t border-divider p-3">
+      <div className="shrink-0 space-y-2 border-t border-hairline p-3">
         {account && onOpenAccount ? (
           account.status === 'authenticated' ? (
             <button
               type="button"
               onClick={onOpenAccount}
-              className="flex min-h-11 w-full items-center gap-2 rounded-control border border-border bg-gradient-to-b from-surface-raised to-surface-raised/60 px-2.5 py-1.5 text-left transition-colors hover:bg-surface-hover"
+              className="flex min-h-11 w-full items-center gap-2 rounded-control border border-hairline bg-surface-raised px-2.5 py-1.5 text-left transition-colors hover:bg-surface-hover"
             >
               <span
                 aria-hidden="true"

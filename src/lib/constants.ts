@@ -7,6 +7,7 @@ export const LIMITS = {
   bpmMin: 20,
   bpmMax: 400,
   genreMax: 40,
+  authorMax: 120,
   tagsMax: 10,
   tagLengthMax: 24,
   notesMax: 2000,

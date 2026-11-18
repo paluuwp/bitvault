@@ -19,10 +19,15 @@ function sortTracks(tracks: Track[]): Track[] {
   )
 }
 
+/** Старые записи IndexedDB без поля author читаются как author = null. */
+function withAuthor(track: Track): Track {
+  return track.author === undefined ? { ...track, author: null } : track
+}
+
 async function listLocalTracks(): Promise<Track[]> {
   return withDatabase(async (database) => {
     const tracks = await database.getAllFromIndex('tracks', 'by-created-at')
-    return sortTracks(tracks)
+    return sortTracks(tracks.map(withAuthor))
   })
 }
 
@@ -43,7 +48,10 @@ export async function listTracks(): Promise<Track[]> {
 }
 
 export async function getTrack(id: string): Promise<Track | null> {
-  return withDatabase(async (database) => (await database.get('tracks', id)) ?? null)
+  return withDatabase(async (database) => {
+    const track = await database.get('tracks', id)
+    return track ? withAuthor(track) : null
+  })
 }
 
 export async function createTrack(input: NewTrackInput): Promise<Track> {
@@ -55,6 +63,7 @@ export async function createTrack(input: NewTrackInput): Promise<Track> {
     nameLower: normalized.name.toLowerCase(),
     bpm: normalized.bpm,
     musicalKey: normalized.musicalKey,
+    author: normalized.author,
     genre: normalized.genre,
     tags: normalized.tags,
     notes: normalized.notes,
@@ -160,7 +169,7 @@ export async function recordPlay(id: string): Promise<Track> {
 
       const now = new Date().toISOString()
       const updated: Track = {
-        ...existing,
+        ...withAuthor(existing),
         playCount: existing.playCount + 1,
         lastPlayedAt: now,
         updatedAt: now,

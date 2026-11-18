@@ -32,7 +32,7 @@ export function SegmentedControl<T extends string>({
       role="group"
       aria-label={label}
       className={clsx(
-        'inline-flex shrink-0 items-center gap-0.5 rounded-full border border-key-border bg-groove p-0.5',
+        'inline-flex shrink-0 items-center gap-0.5 rounded-full border border-white/10 bg-black/20 p-0.5',
         className,
       )}
     >
@@ -47,8 +47,8 @@ export function SegmentedControl<T extends string>({
             title={option.label}
             onClick={() => onChange(option.value)}
             className={clsx(
-              'fl-key rounded-full text-caption',
-              option.icon ? 'fl-key--icon h-8 w-8' : 'h-8 px-2.5',
+              'fl-key rounded-full border-transparent bg-transparent text-caption text-text-muted hover:bg-surface-hover hover:text-text aria-pressed:border-accent/60 aria-pressed:bg-accent-dim aria-pressed:text-accent',
+              option.icon ? 'fl-key--icon h-8 w-8 md:h-9 md:w-9' : 'h-8 px-3 md:h-9',
               size === 'md' && 'text-body',
             )}
           >

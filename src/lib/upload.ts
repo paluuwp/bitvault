@@ -43,11 +43,11 @@ function assertCloudUploadSize(size: number, name: string): void {
  * Если загрузка не удалась, локальная копия откатывается, чтобы список
  * не расходился с сервером.
  */
-async function publishTrack(track: Track): Promise<Track> {
+async function publishTrack(track: Track, onProgress?: (label: string) => void): Promise<Track> {
   const context = getCloudContext()
   if (!context) return track
   try {
-    return await pushTrackToCloud(context, track)
+    return await pushTrackToCloud(context, track, onProgress)
   } catch (error) {
     await deleteTrack(track.id).catch(() => undefined)
     throw error
@@ -58,7 +58,10 @@ async function publishTrack(track: Track): Promise<Track> {
  * Создаёт трек из перетащенного файла: аудио — с длительностью, прочие файлы —
  * как вложение. Обложки не создают трек (их привязывает интерфейс).
  */
-export async function createTrackFromFile(file: File): Promise<Track> {
+export async function createTrackFromFile(
+  file: File,
+  onProgress?: (label: string) => void,
+): Promise<Track> {
   const originalName = file.name.trim() || 'Без названия'
   const name = trackNameFromFileName(originalName)
   const color = colorFromName(name)
@@ -69,7 +72,10 @@ export async function createTrackFromFile(file: File): Promise<Track> {
     const saved = await saveFile('audio', file, originalName, file.type)
     try {
       const durationSec = await getAudioDuration(file)
-      return await publishTrack(await createTrack({ name, color, audioFileId: saved.id, durationSec }))
+      return await publishTrack(
+        await createTrack({ name, color, audioFileId: saved.id, durationSec }),
+        onProgress,
+      )
     } catch (error) {
       await deleteFile(saved.id).catch(() => undefined)
       throw error
@@ -87,7 +93,10 @@ export async function createTrackFromFile(file: File): Promise<Track> {
   assertCloudUploadSize(file.size, originalName)
   const saved = await saveFile('attachment', file, originalName, file.type)
   try {
-    return await publishTrack(await createTrack({ name, color, attachmentFileIds: [saved.id] }))
+    return await publishTrack(
+      await createTrack({ name, color, attachmentFileIds: [saved.id] }),
+      onProgress,
+    )
   } catch (error) {
     await deleteFile(saved.id).catch(() => undefined)
     throw error

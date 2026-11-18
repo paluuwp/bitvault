@@ -7,7 +7,7 @@ import {
 } from 'idb'
 import type { FileKind, StoredFile, Track } from '@/types/models'
 import { DB_NAME, DB_VERSION } from './constants'
-import { toAppError } from './errors'
+import { AppError, toAppError } from './errors'
 
 export interface BitVaultDB extends DBSchema {
   tracks: {
@@ -31,8 +31,34 @@ export interface BitVaultDB extends DBSchema {
 
 let databasePromise: Promise<IDBPDatabase<BitVaultDB>> | null = null
 
+/**
+ * Открытие базы может зависнуть без ошибки: например, старая вкладка держит
+ * соединение, и обновление версии ждёт её закрытия (событие `blocked`).
+ */
+const OPEN_TIMEOUT_MS = 10_000
+
 function initializeDatabase(): Promise<IDBPDatabase<BitVaultDB>> {
-  return openDB<BitVaultDB>(DB_NAME, DB_VERSION, {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(
+        new AppError(
+          'DB_UNAVAILABLE',
+          'Локальное хранилище занято. Закройте другие вкладки BitVault и обновите страницу.',
+        ),
+      )
+    }, OPEN_TIMEOUT_MS)
+  })
+
+  const opening = openDB<BitVaultDB>(DB_NAME, DB_VERSION, {
+    blocking() {
+      // Новая версия приложения хочет обновить базу: отпускаем соединение.
+      databasePromise = null
+      void opening.then((database) => database.close()).catch(() => undefined)
+    },
+    terminated() {
+      databasePromise = null
+    },
     upgrade(database) {
       if (!database.objectStoreNames.contains('tracks')) {
         const tracks = database.createObjectStore('tracks', { keyPath: 'id' })
@@ -46,9 +72,15 @@ function initializeDatabase(): Promise<IDBPDatabase<BitVaultDB>> {
         files.createIndex('by-kind', 'kind')
       }
     },
-  }).catch((error: unknown) => {
-    throw toAppError(error)
   })
+
+  return Promise.race([opening, timeout])
+    .catch((error: unknown) => {
+      throw toAppError(error)
+    })
+    .finally(() => {
+      if (timer !== undefined) clearTimeout(timer)
+    })
 }
 
 /** Открывает базу один раз и переиспользует соединение. */

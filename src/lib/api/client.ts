@@ -272,10 +272,21 @@ function authHeaders(token: string): Record<string, string> {
 }
 
 const FILE_KINDS = ['audio', 'cover', 'attachment'] as const
-/** Загрузка файла может идти минутами: отдельный таймаут. */
-const UPLOAD_TIMEOUT_MS = 10 * 60 * 1000
+/** Минимальный таймаут загрузки; сверх него добавляется время на каждый МБ. */
+const UPLOAD_BASE_TIMEOUT_MS = 60_000
+/** Запас на МБ рассчитан на канал около 0,5 Мбит/с. */
+const UPLOAD_TIMEOUT_PER_MB_MS = 16_000
+const UPLOAD_MAX_TIMEOUT_MS = 10 * 60 * 1000
 /** Тело загрузки большое, каждая попытка дорогая — не больше двух. */
 const UPLOAD_ATTEMPTS = 2
+
+function uploadTimeoutMs(sizeBytes: number): number {
+  const megabytes = sizeBytes / (1024 * 1024)
+  return Math.min(
+    UPLOAD_MAX_TIMEOUT_MS,
+    Math.round(UPLOAD_BASE_TIMEOUT_MS + megabytes * UPLOAD_TIMEOUT_PER_MB_MS),
+  )
+}
 
 function parseRemoteFile(value: unknown): RemoteFile | null {
   if (!isRecord(value)) return null
@@ -557,7 +568,7 @@ export function createRemoteApi(options: CreateRemoteApiOptions): RemoteApi {
         },
         body,
         context: 'library',
-        timeoutMs: UPLOAD_TIMEOUT_MS,
+        timeoutMs: uploadTimeoutMs(body.size),
         attempts: UPLOAD_ATTEMPTS,
       })
       if (!response.ok) throw await httpErrorFromResponse(response, 'library')

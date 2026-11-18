@@ -74,7 +74,9 @@ export function useUpload(refresh: () => Promise<void>): UseUploadResult {
           }
 
           try {
-            await createTrackFromFile(file)
+            await createTrackFromFile(file, (label) => {
+              if (mountedRef.current) setProgress({ current: index, total, label })
+            })
             added += 1
           } catch (caught) {
             failed += 1

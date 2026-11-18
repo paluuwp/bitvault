@@ -11,6 +11,3 @@ coverage
 !.env.example
 worker/.dev.vars
 worker/.wrangler
-
-# Локальная конфигурация Claude Code
-.claude/
